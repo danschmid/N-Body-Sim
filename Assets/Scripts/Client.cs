@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Security;
 using static UnityEditor.PlayerSettings;
 using System.Numerics;
+using System.Dynamic;
 
 public class Client : MonoBehaviour
 {
@@ -25,6 +26,7 @@ public class Client : MonoBehaviour
     public string tomorrow;
 
     public NB nb;
+    public SidebarUI sidebarUI;
 
     private void OnGUI()
     {
@@ -36,14 +38,20 @@ public class Client : MonoBehaviour
         today = System.DateTime.Now.ToString("yyyy-MM-dd");
         tomorrow = System.DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
 
-        PlanetCodes = new List<string> { "10", "1", "2", "399", "499", "599", "699", "799", "899", "999", "501", "502", "503", "504" };
+        PlanetCodes = new List<string> { "10", "199", "299", "399", "499", "599", "699", "799", "899", "999", "501", "502", "503", "504" };
         planets = new List<string> { "Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "Io", "Europa", "Ganymede", "Callisto" };
 
         StartCoroutine( WebRequestText(HorizonsInfoURL, GetIndex) );  //updates the index with names and IDs of available bodies
 
-        findMass("Earth");
+        //findMass("Earth");
     }
 
+    public Dictionary<string, string[]> GetIndex()
+    {
+        Debug.Log("Index length: " + Index.Count);
+        return Index;
+    }
+    
 
     public IEnumerator UpdateSelectedBodyData()
     {
@@ -61,7 +69,7 @@ public class Client : MonoBehaviour
         UnityEngine.Debug.Log("Simulation Complete");
     }
 
-    public void findMass(string bodyName) //this function isn't finished at all, but is meant to access the NASA API to find mass of a body, or any other missing data
+    /*public void findMass(string bodyName) //this function isn't finished at all, but is meant to access the NASA API to find mass of a body, or any other missing data
     {
         string baseURL = "https://api.nasa.gov/planetary/";
         string apiKey = "c5FDQPmE66yaYkIAztHpXuZj6gxZtqfrItB6yKpYf";
@@ -70,7 +78,7 @@ public class Client : MonoBehaviour
         string url = baseURL + endpoint + "?api_key=" + apiKey;
 
         StartCoroutine(WebRequestText(url, HandleResponse));
-    }
+    }*/
     private void HandleResponse(string response)
     {
         var planetData = JsonUtility.FromJson<string>(response);
@@ -120,6 +128,8 @@ public class Client : MonoBehaviour
             Index.Add(namecode[0], new string[3] { namecode[1], namecode[2], namecode[3] }); //Horizons ID#, [Name, Designation, IAU/Aliases/other]
         }
         Debug.Log("Index length: " + Index.Count());
+
+        sidebarUI.UpdateBodySelectionList();
     }
 
     //write a function that creates a web request for JPL Horizons database API to get the mass of a given body

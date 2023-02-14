@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class ExpandButtonHandler : MonoBehaviour
 {
-    public Canvas canvas;
+    public Canvas expandCanvas;
     public Text buttontext;
     private bool isExpanded = false;
     
@@ -18,8 +18,9 @@ public class ExpandButtonHandler : MonoBehaviour
         else
         {
             buttontext.text = "-";  //Need to improve the positioning of this when the text changes. It's not centered.
+            
         }
-        canvas.gameObject.SetActive(!isExpanded);
+        expandCanvas.gameObject.SetActive(!isExpanded);
         isExpanded = !isExpanded;
     }
 }
