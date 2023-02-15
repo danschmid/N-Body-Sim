@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using System.IO;
+using System.Collections.Generic;
+
 
 public class BodiesMenu : MonoBehaviour {
 
@@ -21,6 +23,9 @@ public class BodiesMenu : MonoBehaviour {
     public Client client;
     public Orbit orbit;
     public NB nb;
+
+    public delegate void GetSelectedBodiesEvent();
+    public event GetSelectedBodiesEvent GetSelectedBodies;
 
     void Awake()
     {
@@ -74,6 +79,8 @@ public class BodiesMenu : MonoBehaviour {
             if (GUILayout.Button("Get Sol System"))
             {
                 orbit.stopSim();
+                //client.PlanetCodes = new List<string> { };
+                //GetSelectedBodies();
                 orbit.getCurr = true;  //find a better way to do this?
                 boxOpen = false;
                 StartCoroutine(client.UpdateSelectedBodyData());
@@ -144,7 +151,7 @@ public class BodiesMenu : MonoBehaviour {
 
 
 
-                    string input1 = client.getBetween(stmp, "(", ")");          //Get pos coordinates
+                    string input1 = client.GetBetween(stmp, "(", ")");          //Get pos coordinates
                     input1 = input1.Replace(" ", "");
                     input1 = input1.Replace("  ", "");
                     string[] input2 = input1.Split(',');
@@ -165,7 +172,7 @@ public class BodiesMenu : MonoBehaviour {
 
 
 
-                    string input3 = client.getBetween(veltmp, "(", ")");          //Get pos coordinates
+                    string input3 = client.GetBetween(veltmp, "(", ")");          //Get pos coordinates
                     input3 = input3.Replace(" ", "");
                     input3 = input3.Replace("  ", "");
                     string[] input4 = input3.Split(',');

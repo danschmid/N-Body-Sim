@@ -17,6 +17,19 @@ public class SidebarUI : MonoBehaviour
 
     int defaultnamecount = 0;
 
+    List<string> SelectedIDs = new List<string>();
+
+    public List<string> GetSelectedIDs()
+    {
+        if(SelectedIDs.Count < 1)
+        {
+            Debug.LogWarning("You must choose at least one body to simulate");
+            return null;
+        }
+
+        return SelectedIDs;
+    }
+
     void Start()
     {
         bodySelectionList = GameObject.Find("pg1 - Object Selection");
@@ -94,7 +107,7 @@ public class SidebarUI : MonoBehaviour
 
                 foreach (string id in system.Value)
                 {
-                    InstantiateToggle(GetBestName(id), expandArea);
+                    toggle = InstantiateToggle(GetBestName(id), expandArea);
                 }
 
 
@@ -112,7 +125,7 @@ public class SidebarUI : MonoBehaviour
                     values.RemoveAt(0);
                     foreach (string id in values)
                     {
-                        InstantiateToggle(GetBestName(id), expandArea);
+                        toggle = InstantiateToggle(GetBestName(id), expandArea);
                     }
                 }
             }
