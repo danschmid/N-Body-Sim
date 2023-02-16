@@ -62,6 +62,7 @@
      <Compile Include="Assets\Scripts\ExpandButtonHandler.cs" />
      <Compile Include="Assets\Scripts\HelloWorld.cs" />
      <Compile Include="Assets\Scripts\HorizonsWebRequest.cs" />
+     <Compile Include="Assets\Scripts\InputFieldHandler.cs" />
      <Compile Include="Assets\Scripts\MoveCameraInertia.cs" />
      <Compile Include="Assets\Scripts\NB.cs" />
      <Compile Include="Assets\Scripts\NewMenu.cs" />

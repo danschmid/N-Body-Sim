@@ -116,7 +116,7 @@ public class Orbit : MonoBehaviour {
 
 			if(objPlanet != null)
             {
-                Debug.Log("moving planet " + p + " to " + pos[itr] * 250 + " " + pos[itr + 1] * 250 + " " + pos[itr + 2] * 250);
+                //Debug.Log("moving planet " + p + " to " + pos[itr] * 250 + " " + pos[itr + 1] * 250 + " " + pos[itr + 2] * 250);
                 objPlanet.transform.position = new Vector3(pos[itr] * 250, pos[itr + 1] * 250, pos[itr + 2] * 250);
 			}
 			itr += 3;
@@ -136,32 +136,10 @@ public class Orbit : MonoBehaviour {
             float step = 50 * Time.deltaTime;               //was 10*
             Vector3 poss = new Vector3();
 			poss = new Vector3(pos[pitr] * 250, pos[pitr + 1] * 250, pos[pitr + 2] * 250);
-			UnityEngine.Debug.Log(p + ": " + pos[pitr]*250 + " " + pos[pitr+1] * 250 + " " + pos[pitr+2] * 250);
+			//UnityEngine.Debug.Log(p + ": " + pos[pitr]*250 + " " + pos[pitr+1] * 250 + " " + pos[pitr+2] * 250);
 			//UnityEngine.Debug.Log(p + ": " + poss.x + " " + poss.y + " " + poss.z);
 			objPlanet.transform.position = Vector3.MoveTowards(objPlanet.transform.position, poss, step);
 		}
-		/*else
-		{
-			Debug.Log("creating " + p);
-            objPlanet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            objPlanet.AddComponent<HelloWorld>();
-            objPlanet.name = p;
-            float step = 50 * Time.deltaTime;               //was 10*
-            Vector3 poss = new Vector3();
-            poss = new Vector3(pos[pitr] * 250, pos[pitr + 1] * 250, pos[pitr + 2] * 250);
-            //UnityEngine.Debug.Log(p + ": " + pos[pitr] + " " + pos[pitr+1] + " " + pos[pitr+2]);
-            //UnityEngine.Debug.Log(p + ": " + poss.x + " " + poss.y + " " + poss.z);
-            objPlanet.transform.position = Vector3.MoveTowards(objPlanet.transform.position, poss, step);
-        }*/
-		/*}
-        else
-        {
-			GameObject parenttmp = GameObject.Find("Jupiter");
-			Vector3 postmp = parenttmp.transform.TransformPoint(new Vector3(pos[pitr], pos[pitr + 1], pos[pitr + 2]));
-			UnityEngine.Debug.Log(p + ": " + postmp.x + " " + postmp.y + " " + postmp.z);
-			objPlanet.transform.position = Vector3.MoveTowards(objPlanet.transform.position, postmp, step);
-		}*/
-
 	}
 
 	

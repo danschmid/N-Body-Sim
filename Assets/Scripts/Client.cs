@@ -13,6 +13,7 @@ using System.Dynamic;
 using System.Net;
 using System.Xml.Linq;
 using System.Text;
+using UnityEngine.UI;
 //using Newtonsoft.Json;
 //using UnityEngine.Modules.Jsonserialize;
 public class Client : MonoBehaviour
@@ -35,6 +36,10 @@ public class Client : MonoBehaviour
     public NB nb;
     public SidebarUI sidebarUI;
 
+    public InputField inputField;
+    private string userInput = "";
+    double[] data;
+
     private void OnGUI()
     {
         GUI.Label(new Rect(10, 10, 500, 20), "Left-click to pan, right-click to rotate, and middle-click to zoom");
@@ -46,9 +51,8 @@ public class Client : MonoBehaviour
         tomorrow = System.DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
 
         //PlanetCodes = new List<string> { "10", "199", "299", "399", "499", "599", "699", "799", "899", "999", "501", "502", "503", "504" };
-        planetNames = new List<string> {};
 
-        StartCoroutine( WebRequestText(HorizonsInfoURL, "0", GetIndex) );  //updates the index with names and IDs of available bodies
+        StartCoroutine( WebRequestText(HorizonsInfoURL, "0", true) );  //updates the index with names and IDs of available bodies
     }
 
     public Dictionary<string, string[]> GetIndex()
@@ -63,6 +67,7 @@ public class Client : MonoBehaviour
         //nb.MasterMasses = new List<double> { 1.9891e30, 3.285e23, 4.867e24, 5.972e24, 6.39e23, 1.8982e27, 5.683e26, 8.681e25, 1.024e26, 1.30900e22, 8.9319e22, 4.7998e22, 1.4819e23, 1.075938e23 };   // 
         StartPos = new List<double[]>();
         StartVel = new List<double[]>();
+        planetNames = new List<string> { };
         PlanetCodes = sidebarUI.GetSelectedIDs();
         string result = "PlanetCodes contents: ";
         foreach (var item in PlanetCodes)
@@ -74,10 +79,9 @@ public class Client : MonoBehaviour
         for (int c = 0; c < PlanetCodes.Count(); c++)
         {
             string url = DoURL(PlanetCodes[c]);
-            yield return StartCoroutine( WebRequestText(url, PlanetCodes[c], GetEphemeris) );
-            Debug.Log("coroutine done");
+            yield return StartCoroutine( WebRequestText(url, PlanetCodes[c], false) );
             nb.MasterMasses.Add(BodyData[PlanetCodes[c]][2][0]);  //populate masses list.  initial positions and velocities are populated in getephemeris.
-            Debug.Log(PlanetCodes[c] + " " + BodyData[PlanetCodes[c]][2][0]);
+            //Debug.Log(PlanetCodes[c] + " " + BodyData[PlanetCodes[c]][2][0]);
             planetNames.Add(sidebarUI.GetBestName(PlanetCodes[c]));
         }
 
@@ -88,14 +92,14 @@ public class Client : MonoBehaviour
         }
         Debug.Log(result);
 
-        Debug.Log("PlanetCodes: " + PlanetCodes.Count());
+        //Debug.Log("PlanetCodes: " + PlanetCodes.Count());
 
         nb.nBody(StartPos, StartVel, 31536000, 1000);
         UnityEngine.Debug.Log("Simulation Complete");
     }
 
 
-    public IEnumerator WebRequestText(string url, string pcode, System.Action<string, string> callback)  //gets the text from the page at the specified URL and sends the output to the callback function provided (either GetEphemeris, or GetIndex).
+    public IEnumerator WebRequestText(string url, string pcode, bool getIndex)  //gets the text from the page at the specified URL and sends the output to the callback function provided (either GetEphemeris, or GetIndex).
     {
         UnityEngine.Debug.Log(url);
 
@@ -108,8 +112,14 @@ public class Client : MonoBehaviour
         else
         {
             string output = www.downloadHandler.text;
-            Debug.Log("About to do callback.  pcode: " + pcode);
-            callback(output, pcode);
+            if(getIndex)
+            {
+                GetIndex(output, pcode);
+            }
+            else
+            {
+                yield return StartCoroutine(GetEphemeris(output, pcode));
+            }
         }
     }
 
@@ -141,7 +151,7 @@ public class Client : MonoBehaviour
     }  
     
 
-    public double[] GetPlanetaryData(string rawText)
+    public IEnumerator GetPlanetaryData(string rawText, string pcode)
     {
         Debug.Log("getting planetary data...");
         // use regular expressions to find the number following "Vol. Mean Radius (km) = ", "Vol. mean radius, km = ", or "Radius (km)  = "
@@ -237,6 +247,16 @@ public class Client : MonoBehaviour
             else
             {
                 Debug.LogWarning("Couldn't parse GM string into double: \" " + GM + " \"");
+
+                yield return StartCoroutine(WaitForInput(pcode));
+                while(!double.TryParse(userInput, out dmass))
+                {
+                    Debug.Log("Invalid mass input");
+                    userInput = "";
+                    yield return StartCoroutine(WaitForInput(pcode));
+                }
+                userInput = "";
+
             }
 
 
@@ -264,7 +284,7 @@ public class Client : MonoBehaviour
         }
 
 
-        return new double[] {dmass, dradius};
+        data = new double[] {dmass, dradius};
     }
 
     public double CalculateMass(double GM)
@@ -273,15 +293,45 @@ public class Client : MonoBehaviour
         return (GM / G)*10;
     }
 
+    public string GetInput(string pcode)
+    {
+        
 
-    public void GetEphemeris(string rawText, string pcode)
+        StartCoroutine(WaitForInput(pcode));
+        return userInput;
+    }
+
+    public IEnumerator WaitForInput(string pcode)
+    {
+        Debug.Log("Start getinput");
+        userInput = "";
+        inputField.GetComponentInChildren<Text>().text = "Enter a mass for " + sidebarUI.GetBestName(pcode) + ":";
+        inputField.gameObject.SetActive(true);
+        inputField.interactable = true;
+        inputField.ActivateInputField();
+
+        while (userInput == "")
+        {
+            if (Input.GetKey(KeyCode.Return))
+            {
+                userInput = inputField.text;
+                inputField.text = "";
+                inputField.interactable = false;
+                inputField.gameObject.SetActive(false);
+            }
+            yield return null;
+        }
+    }
+
+
+    public IEnumerator GetEphemeris(string rawText, string pcode)
     {
         //UnityEngine.Debug.Log("connected. Retrieving " + searchIndex() + "...");
 
         Debug.Log(rawText);
 
-        double[] data;
-        data = GetPlanetaryData(rawText);
+        data = new double[] { };
+        yield return StartCoroutine(GetPlanetaryData(rawText, pcode));
 
 
 
@@ -289,7 +339,7 @@ public class Client : MonoBehaviour
         if (ephemeris == null)
         {
             Debug.LogError("Ephemeris not found");
-            return;
+            yield break;
         }
         ephemeris = ephemeris.Replace(" ", "");
         Debug.Log(ephemeris);
@@ -317,8 +367,6 @@ public class Client : MonoBehaviour
 
         StartPos.Add(startp);                    //add position coordinates to startpos list 
         StartVel.Add(startv);
-
-        Debug.Log(BodyData);
 
         if(!BodyData.Keys.Contains(pcode))
         {
