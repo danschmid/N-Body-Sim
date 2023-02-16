@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,15 +43,6 @@ public class SidebarUI : MonoBehaviour
     void Start()
     {
         bodySelectionList = GameObject.Find("pg1 - Object Selection");
-
-        //TogglePrefab = Resources.Load("Toggle") as GameObject;
-        //ExpandHeaderPrefab = Resources.Load("Expandable Header") as GameObject;
-        //ExpandAreaPrefab = Resources.Load("Expand Area") as GameObject;
-
-        /*float screenHeight = Screen.height;
-        float screenWidth = Screen.width;
-        panel.sizeDelta = new Vector2(screenWidth / 4, screenHeight);
-        panel.anchoredPosition = new Vector2(screenWidth - (panel.sizeDelta.x / 2), 0);*/
     }
     
     public void UpdateBodySelectionList()  //gets the celestial bodies available on Horizons from Client.Index, and populates the body selection list in the sidebar

@@ -6,13 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Security;
-using static UnityEditor.PlayerSettings;
-using System.Numerics;
-using System.Dynamic;
-using System.Net;
-using System.Xml.Linq;
-using System.Text;
 using UnityEngine.UI;
 //using Newtonsoft.Json;
 //using UnityEngine.Modules.Jsonserialize;
@@ -162,11 +155,13 @@ public class Client : MonoBehaviour
         Debug.Log("radius= " + radius);
 
         // make a regular expression pattern to find "Mass, 10^n kg = value"  store the value, the exponent, and the units (usually kg, but could be g in the case of Jupiter for example)
-        pattern = @"(Mass,?\s+x?\s?10\^?(-?\d+\.?\d*)?\s+\(?([a-z,1-9,^]+)\)?\s*=)\s*~?(\d+\.?\d*)";
+        pattern = @"(Mass,?\s*x?\s*\(?\s*10\^(-?\d+\.?\d*)?\s+\(?([a-z,1-9,^]+)\s*\)?\s*=)\s*~?(\d+\.?\d*)(\s*\(?\s*10\^(-?\d+)\s*\)?\s*)?\S*?";
 
         string mass = Regex.Match(rawText, pattern, RegexOptions.IgnoreCase).Groups[4].Value;
         string massExp = Regex.Match(rawText, pattern, RegexOptions.IgnoreCase).Groups[2].Value;
         string massUnit = Regex.Match(rawText, pattern, RegexOptions.IgnoreCase).Groups[3].Value;
+        string massExp2 = Regex.Match(rawText, pattern, RegexOptions.IgnoreCase).Groups[6].Value;
+        //Debug.Log("massexp2: " + massExp2);
         mass = mass.Substring(mass.IndexOf("=") + 1);
         mass = mass.Trim();
 
@@ -249,10 +244,13 @@ public class Client : MonoBehaviour
                 Debug.LogWarning("Couldn't parse GM string into double: \" " + GM + " \"");
 
                 yield return StartCoroutine(WaitForInput(pcode));
-                while(!double.TryParse(userInput, out dmass))
+                double.TryParse(userInput, out dmass);
+                while (dmass == 0)
                 {
+                    double.TryParse(userInput, out dmass);
                     Debug.Log("Invalid mass input");
-                    userInput = "";
+                    inputField.interactable = true;
+                    inputField.gameObject.SetActive(true);
                     yield return StartCoroutine(WaitForInput(pcode));
                 }
                 userInput = "";
@@ -265,7 +263,13 @@ public class Client : MonoBehaviour
         }
         else
         {
+            if (massExp2 != "")
+            {
+                Debug.LogWarning("massexponent changed from " + massExp + " to " + massExp + "+" + massExp2);
+                massExp = (double.Parse(massExp) + double.Parse(massExp2)).ToString();
+            }
             mass = mass + "e" + massExp;
+            
             if(!double.TryParse(mass, out dmass))
             {
                 Debug.LogWarning("could not parse mass: " + mass);
@@ -293,26 +297,17 @@ public class Client : MonoBehaviour
         return (GM / G)*10;
     }
 
-    public string GetInput(string pcode)
-    {
-        
-
-        StartCoroutine(WaitForInput(pcode));
-        return userInput;
-    }
-
     public IEnumerator WaitForInput(string pcode)
     {
         Debug.Log("Start getinput");
         userInput = "";
         inputField.GetComponentInChildren<Text>().text = "Enter a mass for " + sidebarUI.GetBestName(pcode) + ":";
-        inputField.gameObject.SetActive(true);
         inputField.interactable = true;
-        inputField.ActivateInputField();
+        inputField.gameObject.SetActive(true);
 
         while (userInput == "")
         {
-            if (Input.GetKey(KeyCode.Return))
+            if (Input.GetKeyDown(KeyCode.Return))
             {
                 userInput = inputField.text;
                 inputField.text = "";

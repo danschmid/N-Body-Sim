@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using static UnityEditor.ShaderData;
 
 public class Orbit : MonoBehaviour {
 	public List<float> pos = new List<float>();
