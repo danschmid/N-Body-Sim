@@ -189,7 +189,7 @@ public class BodiesMenu : MonoBehaviour {
                         writetext.Close();
                     }
 
-                    client.planets.Add(ntmp);
+                    client.planetNames.Add(ntmp);
 
                     //create sphere object 
                     GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere);

@@ -14,6 +14,8 @@ public class ToggleHandler : MonoBehaviour
     public BodiesMenu bm;
     public SidebarUI sb;
 
+    public int indexNum;
+
 
     // Start is called before the first frame update
     void Start()
@@ -25,6 +27,22 @@ public class ToggleHandler : MonoBehaviour
         sb = GameObject.Find("Sidebar Menu").GetComponent<SidebarUI>();
         bm.GetSelectedBodies += UpdateSelections;
         Toggle toggle = gameObject.GetComponent<Toggle>();
+
+        toggle.onValueChanged.AddListener(OnClick);
+
+    }
+
+    public void OnClick(bool isOn)
+    {
+        if (isOn)
+        {
+            sb.ToggleStates[indexNum] = true;
+        }
+        else
+        {
+            sb.ToggleStates[indexNum] = false;
+
+        }
     }
 
     // Update is called once per frame

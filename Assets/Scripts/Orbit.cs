@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using static UnityEditor.ShaderData;
 
 public class Orbit : MonoBehaviour {
 	public List<float> pos = new List<float>();
@@ -14,6 +15,8 @@ public class Orbit : MonoBehaviour {
 
 	public Client client;
 	public NB nb;
+	public SidebarUI sb;
+	
 
 	// Use this for initialization
 	void Start()
@@ -67,10 +70,11 @@ public class Orbit : MonoBehaviour {
 		if(count>=10 && ready==true)
 		{
 			//UnityEngine.Debug.Log(planets.Count + " bodies");
-			foreach(string pl in client.planets)
+			foreach(string pl in client.PlanetCodes)
 			{
-				movePlanets(pl);
-				pitr += 3;
+				movePlanets(sb.GetBestName(pl));
+
+                pitr += 3;
 			}
 
 			count=0;
@@ -91,7 +95,7 @@ public class Orbit : MonoBehaviour {
 		UnityEngine.Debug.Log("poslength: " + pos.Count);
 		
 		int itr = 0;
-		foreach(string p in client.planets)
+		foreach(string p in client.planetNames)
         {
 			GameObject objPlanet = null;
 			if(GameObject.Find(p) != null)
@@ -103,38 +107,52 @@ public class Orbit : MonoBehaviour {
 				GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere); // or create a new one for non-default bodies
 				go.AddComponent<HelloWorld>();
 				go.name = p;
-				objPlanet = GameObject.Find(p);
+				objPlanet = go;
 				float f = (float)0.1;
 				objPlanet.transform.localScale = new Vector3(f, f, f);
-			}
+				objPlanet.transform.position = new Vector3(pos[itr] * 250, pos[itr + 1] * 250, pos[itr + 2] * 250);
+
+            }
 
 			if(objPlanet != null)
             {
-				objPlanet.transform.position = new Vector3(pos[itr] * 250, pos[itr + 1] * 250, pos[itr + 2] * 250);
+                Debug.Log("moving planet " + p + " to " + pos[itr] * 250 + " " + pos[itr + 1] * 250 + " " + pos[itr + 2] * 250);
+                objPlanet.transform.position = new Vector3(pos[itr] * 250, pos[itr + 1] * 250, pos[itr + 2] * 250);
 			}
 			itr += 3;
-			}
+		}
 	}
 
 
 	private void movePlanets(string p)
 	{
-		if (pitr < pos.Count)
-		{
-			GameObject objPlanet = GameObject.Find(p);
-			//objPlanet.transform.position = new Vector3(pos[itr], pos[itr+1], pos[itr+2]);
-			float step = 50 * Time.deltaTime;               //was 10*
-			Vector3 poss = new Vector3();
+		GameObject objPlanet;
+        if (pitr < pos.Count && GameObject.Find(p))
+        {
+			objPlanet = GameObject.Find(p);
+			float f = (float)0.1;
+            objPlanet.transform.localScale = new Vector3(f, f, f);
+            //objPlanet.transform.position = new Vector3(pos[itr], pos[itr+1], pos[itr+2]);
+            float step = 50 * Time.deltaTime;               //was 10*
+            Vector3 poss = new Vector3();
 			poss = new Vector3(pos[pitr] * 250, pos[pitr + 1] * 250, pos[pitr + 2] * 250);
-			//UnityEngine.Debug.Log(p + ": " + pos[pitr] + " " + pos[pitr+1] + " " + pos[pitr+2]);
+			UnityEngine.Debug.Log(p + ": " + pos[pitr]*250 + " " + pos[pitr+1] * 250 + " " + pos[pitr+2] * 250);
 			//UnityEngine.Debug.Log(p + ": " + poss.x + " " + poss.y + " " + poss.z);
 			objPlanet.transform.position = Vector3.MoveTowards(objPlanet.transform.position, poss, step);
 		}
-        else
-        {
-			//UnityEngine.Debug.Log(pitr + " = " + pos.Count);
-			UnityEngine.Debug.Log("Simulation Complete");
-        }
+		/*else
+		{
+			Debug.Log("creating " + p);
+            objPlanet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            objPlanet.AddComponent<HelloWorld>();
+            objPlanet.name = p;
+            float step = 50 * Time.deltaTime;               //was 10*
+            Vector3 poss = new Vector3();
+            poss = new Vector3(pos[pitr] * 250, pos[pitr + 1] * 250, pos[pitr + 2] * 250);
+            //UnityEngine.Debug.Log(p + ": " + pos[pitr] + " " + pos[pitr+1] + " " + pos[pitr+2]);
+            //UnityEngine.Debug.Log(p + ": " + poss.x + " " + poss.y + " " + poss.z);
+            objPlanet.transform.position = Vector3.MoveTowards(objPlanet.transform.position, poss, step);
+        }*/
 		/*}
         else
         {

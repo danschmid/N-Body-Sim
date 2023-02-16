@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,6 +11,8 @@ public class SidebarUI : MonoBehaviour
     public Client client;
     public GameObject bodySelectionList;
     Dictionary<string, string[]> index;
+    public List<bool> ToggleStates;
+    public List<string> ToggleNames;
 
     public GameObject TogglePrefab;
     public GameObject ExpandHeaderPrefab;
@@ -21,6 +24,15 @@ public class SidebarUI : MonoBehaviour
 
     public List<string> GetSelectedIDs()
     {
+        int itr = 0;
+        foreach (bool boo in ToggleStates)
+        {
+            if (boo == true)
+            {
+                SelectedIDs.Add(ToggleNames[itr]);
+            }
+            itr++;
+        }
         if(SelectedIDs.Count < 1)
         {
             Debug.LogWarning("You must choose at least one body to simulate");
@@ -95,6 +107,8 @@ public class SidebarUI : MonoBehaviour
 
         }
 
+        
+        int toggleCount = 0;
         foreach (KeyValuePair<string, List<string>> system in sortedIndex)
         {
             //GameObject expandHeader = null;
@@ -108,6 +122,11 @@ public class SidebarUI : MonoBehaviour
                 foreach (string id in system.Value)
                 {
                     toggle = InstantiateToggle(GetBestName(id), expandArea);
+                    ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
+                    toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
+                    Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
+                    toggleCount++;
+                    ToggleNames.Add(id);
                 }
 
 
@@ -115,7 +134,12 @@ public class SidebarUI : MonoBehaviour
             else
             {
                 string bestName = GetBestName(system.Value[0]);
+                ToggleNames.Add(system.Value[0]);
                 toggle = InstantiateToggle(bestName, null, true);
+                ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
+                toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
+                Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
+                toggleCount++;
 
                 if (system.Value.Count > 1)
                 {
@@ -126,10 +150,17 @@ public class SidebarUI : MonoBehaviour
                     foreach (string id in values)
                     {
                         toggle = InstantiateToggle(GetBestName(id), expandArea);
+                        ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
+                        toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
+                        //Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
+                        toggleCount++;
+                        ToggleNames.Add(id);
+
                     }
                 }
             }
         }
+        Debug.Log("Toggles Length: " + ToggleStates.Count + ", Index Length: " + sortedIndex.Count());
     }
 
     void AddToDict()
@@ -176,7 +207,7 @@ public class SidebarUI : MonoBehaviour
         return toggle;
     }
 
-    string GetBestName(string id) //determines whether to use the primary name, designation, or alias from the index  
+    public string GetBestName(string id) //determines whether to use the primary name, designation, or alias from the index  
     {
         if (!string.IsNullOrEmpty(index[id][0]))
         {
