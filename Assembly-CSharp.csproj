@@ -57,7 +57,7 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\BodiesMenu.cs" />
      <Compile Include="Assets\Scripts\Body.cs" />
-     <Compile Include="Assets\Scripts\CameraMovement.cs" />
+     <Compile Include="Assets\Scripts\CameraFollow.cs" />
      <Compile Include="Assets\Scripts\Client.cs" />
      <Compile Include="Assets\Scripts\ExpandButtonHandler.cs" />
      <Compile Include="Assets\Scripts\HelloWorld.cs" />
@@ -69,6 +69,7 @@
      <Compile Include="Assets\Scripts\Orbit.cs" />
      <Compile Include="Assets\Scripts\SidebarUI.cs" />
      <Compile Include="Assets\Scripts\Sun.cs" />
+     <Compile Include="Assets\Scripts\TabHandler.cs" />
      <Compile Include="Assets\Scripts\ToggleHandler.cs" />
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
      <None Include="Assets\iPosition.txt" />

@@ -15,6 +15,8 @@ public class Orbit : MonoBehaviour {
 	public Client client;
 	public NB nb;
 	public SidebarUI sb;
+
+	private float DistanceScale = 250;
 	
 
 	// Use this for initialization
@@ -36,6 +38,11 @@ public class Orbit : MonoBehaviour {
 		}
 		ready = true;
 	}
+
+	public void UpdateDistanceScale(float value)
+	{
+        DistanceScale = value;
+    }
 	
 
 	public void stopSim()
@@ -59,8 +66,6 @@ public class Orbit : MonoBehaviour {
 
 
 		UnityEngine.Debug.Log("MasterPos: " + nb.MasterPos.Count);
-
-
 	}
 	
 	// Update is called once per frame
@@ -109,14 +114,14 @@ public class Orbit : MonoBehaviour {
 				objPlanet = go;
 				float f = (float)0.1;
 				objPlanet.transform.localScale = new Vector3(f, f, f);
-				objPlanet.transform.position = new Vector3(pos[itr] * 250, pos[itr + 1] * 250, pos[itr + 2] * 250);
+				objPlanet.transform.position = new Vector3(pos[itr] * DistanceScale, pos[itr + 1] * DistanceScale, pos[itr + 2] * DistanceScale);
 
             }
 
 			if(objPlanet != null)
             {
                 //Debug.Log("moving planet " + p + " to " + pos[itr] * 250 + " " + pos[itr + 1] * 250 + " " + pos[itr + 2] * 250);
-                objPlanet.transform.position = new Vector3(pos[itr] * 250, pos[itr + 1] * 250, pos[itr + 2] * 250);
+                objPlanet.transform.position = new Vector3(pos[itr] * DistanceScale, pos[itr + 1] * DistanceScale, pos[itr + 2] * DistanceScale);
 			}
 			itr += 3;
 		}
@@ -134,7 +139,7 @@ public class Orbit : MonoBehaviour {
             //objPlanet.transform.position = new Vector3(pos[itr], pos[itr+1], pos[itr+2]);
             float step = 50 * Time.deltaTime;               //was 10*
             Vector3 poss = new Vector3();
-			poss = new Vector3(pos[pitr] * 250, pos[pitr + 1] * 250, pos[pitr + 2] * 250);
+			poss = new Vector3(pos[pitr] * DistanceScale, pos[pitr + 1] * DistanceScale, pos[pitr + 2] * DistanceScale);
 			//UnityEngine.Debug.Log(p + ": " + pos[pitr]*250 + " " + pos[pitr+1] * 250 + " " + pos[pitr+2] * 250);
 			//UnityEngine.Debug.Log(p + ": " + poss.x + " " + poss.y + " " + poss.z);
 			objPlanet.transform.position = Vector3.MoveTowards(objPlanet.transform.position, poss, step);

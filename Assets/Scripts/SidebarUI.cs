@@ -113,7 +113,7 @@ public class SidebarUI : MonoBehaviour
                     toggle = InstantiateToggle(GetBestName(id), expandArea);
                     ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
                     toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
-                    Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
+                    //Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
                     toggleCount++;
                     ToggleNames.Add(id);
                 }
