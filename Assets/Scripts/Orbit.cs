@@ -16,7 +16,7 @@ public class Orbit : MonoBehaviour {
 	public NB nb;
 	public SidebarUI sb;
 
-	private float DistanceScale = 250;
+	public float DistanceScale = 250;
 	
 
 	// Use this for initialization
@@ -134,14 +134,14 @@ public class Orbit : MonoBehaviour {
         if (pitr < pos.Count && GameObject.Find(p))
         {
 			objPlanet = GameObject.Find(p);
-			float f = (float)0.1;
-            objPlanet.transform.localScale = new Vector3(f, f, f);
+			//float f = (float)0.1;
+            //objPlanet.transform.localScale = new Vector3(f, f, f);
             //objPlanet.transform.position = new Vector3(pos[itr], pos[itr+1], pos[itr+2]);
-            float step = 50 * Time.deltaTime;               //was 10*
+            float step = 5000 * Time.deltaTime;               //was 10*
             Vector3 poss = new Vector3();
 			poss = new Vector3(pos[pitr] * DistanceScale, pos[pitr + 1] * DistanceScale, pos[pitr + 2] * DistanceScale);
 			//UnityEngine.Debug.Log(p + ": " + pos[pitr]*250 + " " + pos[pitr+1] * 250 + " " + pos[pitr+2] * 250);
-			//UnityEngine.Debug.Log(p + ": " + poss.x + " " + poss.y + " " + poss.z);
+			//UnityEngine.Debug.Log("Moving " + p + " to: " + poss.x + ", " + poss.y + ", " + poss.z);
 			objPlanet.transform.position = Vector3.MoveTowards(objPlanet.transform.position, poss, step);
 		}
 	}

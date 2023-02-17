@@ -13,6 +13,13 @@ public class MoveCameraInertia : MonoBehaviour
     private bool isRotating;
     private bool isZooming;
 
+    Camera self;
+
+    void Start()
+    {
+        self = this.GetComponent<Camera>();
+    }
+
     void Update()
     {
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
@@ -24,7 +31,7 @@ public class MoveCameraInertia : MonoBehaviour
         isPanning = Input.GetMouseButton(0);
         isZooming = Input.GetMouseButton(2);
 
-        Vector3 pos = Camera.main.ScreenToViewportPoint(Input.mousePosition - mouseOrigin);
+        Vector3 pos = self.ScreenToViewportPoint(Input.mousePosition - mouseOrigin);
         if (isRotating)
         {
             /*GameObject sob = GameObject.Find("Sun");
