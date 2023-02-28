@@ -2,7 +2,7 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
-.vs/
+/ProfilerData/
 !/[Ll]ibrary/*.asset
 /[Ll]ibrary/
 /[Tt]emp/
