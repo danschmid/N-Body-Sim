@@ -38,8 +38,6 @@ public class CameraFollow : MonoBehaviour {
                     followingObject = false;
                     followTarget = null;
                     SwitchCurrentCamera();
-                    //followTarget = null;
-                    Debug.Log("IsActive = " + this.IsActive);
                 }
                 else
                 {
@@ -50,7 +48,6 @@ public class CameraFollow : MonoBehaviour {
                     Vector3 targetPosition = followTarget.position;
                     followCam.transform.position = new Vector3(transform.position.x, transform.position.y, targetPosition.z - 200);
                     followingObject = true;
-                    Debug.Log("IsActive = " + this.IsActive);
                 }
             }
         }
@@ -72,8 +69,6 @@ public class CameraFollow : MonoBehaviour {
                 followingObject = false;
                 followTarget = null;
                 SwitchCurrentCamera();
-                //followTarget = null;
-                Debug.Log("IsActive = " + this.IsActive);
             }
             else
             {
@@ -84,7 +79,6 @@ public class CameraFollow : MonoBehaviour {
                 Vector3 targetPosition = followTarget.position;
                 followCam.transform.position = new Vector3(transform.position.x, transform.position.y, targetPosition.z - 200);
                 followingObject = true;
-                Debug.Log("IsActive = " + this.IsActive);
             }
 
             IsActive = false;
@@ -100,7 +94,6 @@ public class CameraFollow : MonoBehaviour {
             followCam.enabled = false;
             mainCam.enabled = true;
             currentCam = mainCam;
-            //UI.worldCamera = mainCam;
         }
         else
         {
@@ -108,7 +101,6 @@ public class CameraFollow : MonoBehaviour {
             followCam.enabled = true;
             mainCam.enabled = false;
             currentCam = followCam;
-            //UI.worldCamera = followCam;
         }
     }
 }

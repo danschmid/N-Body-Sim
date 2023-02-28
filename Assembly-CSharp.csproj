@@ -59,6 +59,7 @@
      <Compile Include="Assets\Scripts\Body.cs" />
      <Compile Include="Assets\Scripts\CameraFollow.cs" />
      <Compile Include="Assets\Scripts\Client.cs" />
+     <Compile Include="Assets\Scripts\DataManager.cs" />
      <Compile Include="Assets\Scripts\ExpandButtonHandler.cs" />
      <Compile Include="Assets\Scripts\HelloWorld.cs" />
      <Compile Include="Assets\Scripts\HorizonsWebRequest.cs" />

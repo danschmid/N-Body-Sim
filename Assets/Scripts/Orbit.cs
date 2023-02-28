@@ -15,8 +15,9 @@ public class Orbit : MonoBehaviour {
 	public Client client;
 	public NB nb;
 	public SidebarUI sb;
+    public DataManager DataMan = DataManager.Instance;
 
-	public float DistanceScale = 250;
+    public float DistanceScale = 250;
 	
 
 	// Use this for initialization
@@ -55,17 +56,20 @@ public class Orbit : MonoBehaviour {
 	public void getCurrent()
     {
 		//Orbit.pos = new List<float>();
-		foreach (double[] dd in nb.MasterPos)
+		foreach (double[][] ddd in DataMan.FinalPositions)
 		{
-			foreach (double d in dd)
+			foreach (double[] dd in ddd)
 			{
-				float fd = (float)d;
-				pos.Add(fd);
+				foreach (double d in dd)
+				{
+                    float fd = (float)d;
+                    pos.Add(fd);
+                }
 			}
 		}
 
 
-		UnityEngine.Debug.Log("MasterPos: " + nb.MasterPos.Count);
+		//UnityEngine.Debug.Log("MasterPos: " + DataMan.FinalPositions.Count());
 	}
 	
 	// Update is called once per frame
@@ -73,10 +77,11 @@ public class Orbit : MonoBehaviour {
 	{
 		if(count>=10 && ready==true)
 		{
-			//UnityEngine.Debug.Log(planets.Count + " bodies");
-			foreach(string pl in client.PlanetCodes)
-			{
-				movePlanets(sb.GetBestName(pl));
+            //UnityEngine.Debug.Log(planets.Count + " bodies");
+            foreach (string pl in DataMan.SelectedBodies)
+
+            {
+				movePlanets(DataMan.GetBestName(pl));
 
                 pitr += 3;
 			}
@@ -99,7 +104,7 @@ public class Orbit : MonoBehaviour {
 		UnityEngine.Debug.Log("poslength: " + pos.Count);
 		
 		int itr = 0;
-		foreach(string p in client.planetNames)
+		foreach (string p in DataMan.PreferredNames)
         {
 			GameObject objPlanet = null;
 			if(GameObject.Find(p) != null)
@@ -141,8 +146,8 @@ public class Orbit : MonoBehaviour {
             Vector3 poss = new Vector3();
 			poss = new Vector3(pos[pitr] * DistanceScale, pos[pitr + 1] * DistanceScale, pos[pitr + 2] * DistanceScale);
 			//UnityEngine.Debug.Log(p + ": " + pos[pitr]*250 + " " + pos[pitr+1] * 250 + " " + pos[pitr+2] * 250);
-			//UnityEngine.Debug.Log("Moving " + p + " to: " + poss.x + ", " + poss.y + ", " + poss.z);
-			objPlanet.transform.position = Vector3.MoveTowards(objPlanet.transform.position, poss, step);
+			UnityEngine.Debug.Log("Moving " + p + " to: " + poss.x + ", " + poss.y + ", " + poss.z);
+			objPlanet.transform.position = poss; //Vector3.MoveTowards(objPlanet.transform.position, poss, step);
 		}
 	}
 

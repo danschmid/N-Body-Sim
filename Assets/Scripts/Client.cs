@@ -16,18 +16,16 @@ public class Client : MonoBehaviour
 
     private readonly string HorizonsInfoURL = "https://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1&COMMAND=%27MB%27&CSV_FORMAT=%27YES%27"; //URL for Horizons info page, with a list of all available major bodies and IDs.
     public List<string> PlanetCodes = new List<string>();
-    public List<string> planetNames = new List<string>();
     //private List<string> planetsDefault = new List<string> { "Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto" };
 
-    public Dictionary<string, string[]> Index; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
-    public Dictionary<string, double[][]> BodyData = new Dictionary<string, double[][]>(); //BodyData = ( [Horizons ID#, [[Xi, Yi, Zi], [VXi, VYi, VZi], [Mass, Radius]]] )
-    public List<double[]> StartPos = new List<double[]>();
-    public List<double[]> StartVel = new List<double[]>();
+    //public Dictionary<string, string[]> Index; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
+    //public Dictionary<string, double[][]> BodyData = new Dictionary<string, double[][]>(); //BodyData = ( [Horizons ID#, [[Xi, Yi, Zi], [VXi, VYi, VZi], [Mass, Radius]]] )
     public string today;
     public string tomorrow;
 
     public NB nb;
     public SidebarUI sidebarUI;
+    public DataManager DataMan = DataManager.Instance;
 
     public InputField inputField;
     private string userInput = "";
@@ -50,18 +48,17 @@ public class Client : MonoBehaviour
 
     public Dictionary<string, string[]> GetIndex()
     {
-        Debug.Log("Index length: " + Index.Count);
-        return Index;
+        Debug.Log("Index length: " + DataMan.Index.Count);
+        return DataMan.Index;
     }
     
 
     public IEnumerator UpdateSelectedBodyData()
     {
         //nb.MasterMasses = new List<double> { 1.9891e30, 3.285e23, 4.867e24, 5.972e24, 6.39e23, 1.8982e27, 5.683e26, 8.681e25, 1.024e26, 1.30900e22, 8.9319e22, 4.7998e22, 1.4819e23, 1.075938e23 };   // 
-        StartPos = new List<double[]>();
-        StartVel = new List<double[]>();
-        planetNames = new List<string> { };
         PlanetCodes = sidebarUI.GetSelectedIDs();
+        DataMan.InitializeDataLists(DataMan.SelectedBodies.Count());
+        DataMan.SelectedBodies = PlanetCodes;
         string result = "PlanetCodes contents: ";
         foreach (var item in PlanetCodes)
         {
@@ -73,21 +70,19 @@ public class Client : MonoBehaviour
         {
             string url = DoURL(PlanetCodes[c]);
             yield return StartCoroutine( WebRequestText(url, PlanetCodes[c], false) );
-            nb.MasterMasses.Add(BodyData[PlanetCodes[c]][2][0]);  //populate masses list.  initial positions and velocities are populated in getephemeris.
-            //Debug.Log(PlanetCodes[c] + " " + BodyData[PlanetCodes[c]][2][0]);
-            planetNames.Add(sidebarUI.GetBestName(PlanetCodes[c]));
         }
 
         result = "List contents: ";
-        foreach (var item in nb.MasterMasses)
+        foreach (var item in DataMan.Masses)
         {
             result += item.ToString() + ", ";
         }
         Debug.Log(result);
 
         //Debug.Log("PlanetCodes: " + PlanetCodes.Count());
-
-        nb.nBody(StartPos, StartVel, 31536000, 1000);
+        Debug.Log("Starting simulation...");
+        Debug.Log(DataMan.InitialPositions.Count() + ", " + DataMan.InitialVelocities.Count() + ", " + DataMan.SelectedBodies.Count());
+        nb.nBody(DataMan.Masses, DataMan.InitialPositions, DataMan.InitialVelocities, 31536000, 1000); //1000 or lower needed for high accuracy (generally any more than the 9 main planets+ the sun is too much for stepsize more than 1000)
         UnityEngine.Debug.Log("Simulation Complete");
     }
 
@@ -119,7 +114,7 @@ public class Client : MonoBehaviour
 
     public void GetIndex(string rawText, string pcode)  //pcode is useless here but is required for the callback function to work.
     {
-        Index = new Dictionary<string, string[]>();
+        DataMan.ClearAllData();
 
         UnityEngine.Debug.Log("getting list...");
 
@@ -135,10 +130,11 @@ public class Client : MonoBehaviour
             namecode[1] = line.Substring(10, 35).Trim();
             namecode[2] = line.Substring(45, 13).Trim();
             namecode[3] = line.Substring(58).Trim();
+            
 
-            Index.Add(namecode[0], new string[3] { namecode[1], namecode[2], namecode[3] }); //Horizons ID#, [Name, Designation, IAU/Aliases/other]
+            
+            DataMan.Index.Add(namecode[0], new string[3] { namecode[1], namecode[2], namecode[3] }); //Horizons ID#, [Name, Designation, IAU/Aliases/other]
         }
-        Debug.Log("Index length: " + Index.Count());
 
         sidebarUI.UpdateBodySelectionList();
     }  
@@ -232,7 +228,6 @@ public class Client : MonoBehaviour
             GM = GM.Trim();
             Debug.Log("GM= " + GM);
             
-
             double dGM;
             if(double.TryParse(GM, out dGM))
             {
@@ -256,10 +251,6 @@ public class Client : MonoBehaviour
                 userInput = "";
 
             }
-
-
-
-            
         }
         else
         {
@@ -293,15 +284,15 @@ public class Client : MonoBehaviour
 
     public double CalculateMass(double GM)
     {
-        double G = 6.67430e-20; // gravitational constant, converted from usual units: m^3*kg^-1*s^-2 to km^3*kg^-1*s^-2 
-        return (GM / G)*10;
+        double G = 6.67430e-21; // gravitational constant, converted from usual units: 10^-11 m^3*kg^-1*s^-2 to 10^-20 km^3*kg^-1*s^-2 
+        return (GM / G);
     }
 
     public IEnumerator WaitForInput(string pcode)
     {
         Debug.Log("Start getinput");
         userInput = "";
-        inputField.GetComponentInChildren<Text>().text = "Enter a mass for " + sidebarUI.GetBestName(pcode) + ":";
+        inputField.GetComponentInChildren<Text>().text = "Enter a mass for " + DataMan.GetBestName(pcode) + ":";
         inputField.interactable = true;
         inputField.gameObject.SetActive(true);
 
@@ -357,18 +348,10 @@ public class Client : MonoBehaviour
 
         double[] startp = new double[3] { x, y, z };
         double[] startv = new double[3] { vx, vy, vz };
-        
 
-
-        StartPos.Add(startp);                    //add position coordinates to startpos list 
-        StartVel.Add(startv);
-
-        if(!BodyData.Keys.Contains(pcode))
-        {
-            BodyData.Add(pcode, new double[][] { startp, startv, data });
-        }
+        DataMan.HorizonsAddBody(pcode, data, startp, startv);
         //return new double[][] { startp, startv, data };
-        
+
     }
 
 

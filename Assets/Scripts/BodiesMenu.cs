@@ -23,6 +23,7 @@ public class BodiesMenu : MonoBehaviour {
     public Client client;
     public Orbit orbit;
     public NB nb;
+    public DataManager DataMan = DataManager.Instance;
 
     public delegate void GetSelectedBodiesEvent();
     public event GetSelectedBodiesEvent GetSelectedBodies;
@@ -146,7 +147,8 @@ public class BodiesMenu : MonoBehaviour {
 
                 try
                 {
-                    double Dmtmp = Convert.ToDouble(mtmp);
+                    Debug.Log("Body Creation temporarily disabled");
+                    /*double Dmtmp = Convert.ToDouble(mtmp);
                     nb.MasterMasses.Add(Dmtmp);
 
 
@@ -189,7 +191,7 @@ public class BodiesMenu : MonoBehaviour {
                         writetext.Close();
                     }
 
-                    client.planetNames.Add(ntmp);
+                    //client.planetNames.Add(ntmp);
 
                     //create sphere object 
                     GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -201,8 +203,8 @@ public class BodiesMenu : MonoBehaviour {
                     //go.transform.position = pptmp;
 
 
-                    nb.nBody(client.StartPos, client.StartVel, 43200000, 43200);
-                    boxOpen2 = false;
+                    //nb.nBody(client.StartPos, client.StartVel, 43200000, 43200);
+                    boxOpen2 = false;*/
 
                 }
 

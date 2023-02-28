@@ -16,9 +16,9 @@ public class SidebarUI : MonoBehaviour
     public GameObject ExpandHeaderPrefab;
     public GameObject ExpandAreaPrefab;
 
-    int defaultnamecount = 0;
+    public DataManager DataMan = DataManager.Instance;
 
-    List<string> SelectedIDs = new List<string>();
+    int defaultnamecount = 0;
 
     public List<string> GetSelectedIDs()
     {
@@ -27,17 +27,17 @@ public class SidebarUI : MonoBehaviour
         {
             if (boo == true)
             {
-                SelectedIDs.Add(ToggleNames[itr]);
+                DataMan.SelectedBodies.Add(ToggleNames[itr]);
             }
             itr++;
         }
-        if(SelectedIDs.Count < 1)
+        if(DataMan.SelectedBodies.Count < 1)
         {
             Debug.LogWarning("You must choose at least one body to simulate");
             return null;
         }
 
-        return SelectedIDs;
+        return DataMan.SelectedBodies;
     }
 
     void Start()
@@ -48,7 +48,7 @@ public class SidebarUI : MonoBehaviour
     public void UpdateBodySelectionList()  //gets the celestial bodies available on Horizons from Client.Index, and populates the body selection list in the sidebar
     {
 
-        index = client.Index; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
+        index = DataMan.Index; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
         Dictionary<string, List<string>> sortedIndex = new Dictionary<string, List<string>> {}; //[first char of ID#, [all horizons ID#s with that first char]]   this helps to sort the major planetary bodies and their satellites for populating the list
         int indexlength = index.Count;
 
@@ -110,7 +110,7 @@ public class SidebarUI : MonoBehaviour
 
                 foreach (string id in system.Value)
                 {
-                    toggle = InstantiateToggle(GetBestName(id), expandArea);
+                    toggle = InstantiateToggle(DataMan.GetBestName(id), expandArea);
                     ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
                     toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
                     //Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
@@ -122,7 +122,7 @@ public class SidebarUI : MonoBehaviour
             }
             else
             {
-                string bestName = GetBestName(system.Value[0]);
+                string bestName = DataMan.GetBestName(system.Value[0]);
                 ToggleNames.Add(system.Value[0]);
                 toggle = InstantiateToggle(bestName, null, true);
                 ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
@@ -138,7 +138,7 @@ public class SidebarUI : MonoBehaviour
                     values.RemoveAt(0);
                     foreach (string id in values)
                     {
-                        toggle = InstantiateToggle(GetBestName(id), expandArea);
+                        toggle = InstantiateToggle(DataMan.GetBestName(id), expandArea);
                         ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
                         toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
                         //Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
@@ -195,29 +195,4 @@ public class SidebarUI : MonoBehaviour
 
         return toggle;
     }
-
-    public string GetBestName(string id) //determines whether to use the primary name, designation, or alias from the index  
-    {
-        if (!string.IsNullOrEmpty(index[id][0]))
-        {
-            return index[id][0];
-        }
-        else if (!string.IsNullOrEmpty(index[id][1]))
-        {
-            return index[id][1];
-        }
-        else if (!string.IsNullOrEmpty(index[id][2]))
-        {
-            return index[id][2];
-        }
-        else
-        {
-            Debug.LogWarning("Could not find any name, designation, or other alias for body with id: " + id);
-            defaultnamecount += 1;
-            return "Unnamed_Body_" + defaultnamecount.ToString();
-        }
-
-    }
-
-
 }
