@@ -172,7 +172,11 @@ public class NB : MonoBehaviour {
     
     private double[][] netForceVector(double[] m, double[][] p) 
     {
+<<<<<<< HEAD
         Profiler.BeginSample("Net Force Vector");
+=======
+        //Profiler.BeginSample("Net Force Vector");
+>>>>>>> master
         double[][] forces = new double[SelectedBodyCount][];
         int pcount = p.Count();
 
@@ -189,7 +193,11 @@ public class NB : MonoBehaviour {
             }
         }
 
+<<<<<<< HEAD
         Profiler.EndSample();
+=======
+        //Profiler.EndSample();
+>>>>>>> master
         return forces;  
     }
 
@@ -197,7 +205,11 @@ public class NB : MonoBehaviour {
 
     private void leapfrogUpdateParticles(double[] masses, double[][] positions, double[][] velocities, float dt, int currentStep, TrajectoryResult results)
     {
+<<<<<<< HEAD
         Profiler.BeginSample("Leapfrog Update Particles");
+=======
+        //Profiler.BeginSample("Leapfrog Update Particles");
+>>>>>>> master
         /*
         Evolve particles in time via leap - frog integrator scheme. This function
         takes masses, positions, velocities, and a time step dt as inputs.
@@ -258,6 +270,10 @@ public class NB : MonoBehaviour {
         double[][] endingPositions = new double[masses.Count()][];
         double[][] endingForces = new double[masses.Count()][];
         double[][] endingAccelerations = new double[masses.Count()][];
+<<<<<<< HEAD
+=======
+        double[][] endingVelocities = new double[masses.Count()][];
+>>>>>>> master
 
         for (int i = 0; i < masses.Count(); i++)
         {
@@ -271,7 +287,10 @@ public class NB : MonoBehaviour {
         endingAccelerations = elemDiv(endingForces, masses);
 
         // calculate the ending velocity, using an average of the accelerations
+<<<<<<< HEAD
         double[][] endingVelocities = new double[masses.Count()][];
+=======
+>>>>>>> master
         for (int i = 0; i < masses.Count(); i++)
         {
             //UnityEngine.Debug.Log("ending vel: " + elemAdd(elemMult(elemAdd(endingAccelerations[i], startingAccelerations[i]), (0.5 * dt)), startingVelocities[j])[0]);
@@ -279,7 +298,11 @@ public class NB : MonoBehaviour {
         }
 
         results.AddResult(endingPositions, endingVelocities, currentStep);
+<<<<<<< HEAD
         Profiler.EndSample();
+=======
+        //Profiler.EndSample();
+>>>>>>> master
 
     }
 
@@ -291,7 +314,10 @@ public class NB : MonoBehaviour {
         public double[] Times;
         public double[][][] FinalPostitions;
         public double[][][] FinalVelocities;
+<<<<<<< HEAD
         int StepCount = 0;
+=======
+>>>>>>> master
 
         public void InitializeLists(int numberOfSteps)
         {
@@ -362,7 +388,11 @@ public class NB : MonoBehaviour {
 
     public void nBody(double[] masses, double[][] positions, double[][] velocities, int time, int step)
     {
+<<<<<<< HEAD
         Profiler.BeginSample("nBody");
+=======
+        //Profiler.BeginSample("nBody");
+>>>>>>> master
         //need to add a method to intitialize DataManager's final position and velocity arrays using SelectedBodyCount and number of steps (SelectedBodyCount * steps = total number of final positions for all bodies combined)
         SelectedBodyCount = masses.Count();
 
@@ -399,7 +429,11 @@ public class NB : MonoBehaviour {
         Debug.Log("p: " + results.FinalPostitions.Count() + ", v: " + results.FinalVelocities.Count() + ", t: " + results.Times.Count()+ "... sending to dataman and destroying self");
         results.SendToDataManagerAndDestroy(time/step);
         Debug.Log("DATA FROM DATAMAN: p: " + DataMan.FinalPositions.Count() + ", v: " + DataMan.FinalVelocities.Count() + ", t: " + DataMan.Times.Count());
+<<<<<<< HEAD
         Profiler.EndSample();
+=======
+        //Profiler.EndSample();
+>>>>>>> master
     }
 
     public void saveToFile()

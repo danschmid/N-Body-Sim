@@ -35,12 +35,15 @@ public class DataManager: MonoBehaviour
         nonamecount = 0;
     }
 
+<<<<<<< HEAD
     // Update is called once per frame
     void Update()
     {
         
     }
 
+=======
+>>>>>>> master
 
     public void ClearAllData()
     {
