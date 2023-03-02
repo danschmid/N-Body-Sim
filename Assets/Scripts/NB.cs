@@ -314,7 +314,7 @@ public class NB : MonoBehaviour {
             for (int i = 0; i < BodyCount; i++)
             {
                 fPositions[i][currentStep] = elemDiv2(Pf[i], 1.496e+11);  //convert back to AU
-                fVelocities[i][currentStep] = Vf[i];  //probably should convert velocities back to AU/day but not sure because wwe aren't using these at the moment
+                fVelocities[i][currentStep] = Vf[i];  //probably should convert velocities back to AU/day but not sure because we aren't using these at the moment
             }
             Times[currentStep] = Time;
         }
@@ -370,6 +370,11 @@ public class NB : MonoBehaviour {
 
         //need to put in a check somewhere to verify that positions and velocity lists are of same length
         int pcount = Masses.Count();
+
+        /*if ((Time / Step) % 1 == 0)  //if the number of steps (used for indexing arrays) is not a whole number, adjust the time so it is.  Stepsize should stay the same since it has an effect on accuracy
+        {
+            
+        }*/
 
         double[][] positionsM = new double[pcount][];
         double[][] velocitiesM = new double[pcount][];

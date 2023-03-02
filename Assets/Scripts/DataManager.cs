@@ -14,7 +14,7 @@ public class DataManager: MonoBehaviour
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public int Duration { get; private set; }  //total time between start and end, in seconds
-    public int TimeStep { get; private set; }   //time step between each position, in seconds.  Should probably be something TotalTime is divisible by, or I should find a way to fix it if there isn't a good number of steps
+    public TimeSpan TimeStep { get; private set; }   //time step between each position, in seconds.  Should probably be something TotalTime is divisible by, or I should find a way to fix it if there isn't a good number of steps
 
     public string[] PreferredNames;  //names for each body, in the same order as SelectedBodies.  best name chosen by GetBestName()
     public double[][] InitialPositions;  //initial positions for each body, stored as double[].  The double[] for each body is stored at the same index in the outer array as SelectedBodies
@@ -26,8 +26,11 @@ public class DataManager: MonoBehaviour
     public double[][][] FinalVelocities;
     public double[] Times;
 
+    public double[][][] FullEphemerides;
+
     public int BodyCount;
     private int nonamecount;
+    public int TotalSteps;
 
     void Awake()
     {
@@ -55,14 +58,17 @@ public class DataManager: MonoBehaviour
         nonamecount = 0;
     }
 
-    public void InitializeSimulationSettings(DateTime iTime, DateTime fTime, int step)
+    public void InitializeSimulationSettings(DateTime iTime, DateTime fTime, TimeSpan step)
     {
         StartTime = iTime;
         EndTime = fTime;
         TimeStep = step;
 
-        TimeSpan dur = StartTime - EndTime;
-        Duration = (int)dur.TotalSeconds;  //should I cast to int here, or keep as double?
+        TimeSpan dur = EndTime - StartTime;
+        Duration = (int)dur.TotalSeconds;  //should I cast to int here, or keep as double?  Should probably be a whole number anyways but idk yet
+        TotalSteps = Duration / (int)TimeStep.TotalSeconds;
+
+        Debug.Log("Start DateTime: " + StartTime.ToString("yyyy-MM-dd\\ T HH:mm:ss") + "  --  End: " + EndTime.ToString("yyyy-MM-dd\\ T HH:mm:ss"));
         Debug.Log("Simulation Duration: " + Duration);
     }
 
@@ -81,11 +87,18 @@ public class DataManager: MonoBehaviour
         InitialVelocities = new double[numberOfBodies][];
         Masses = new double[numberOfBodies];
         Radii = new double[numberOfBodies];
+
+        FullEphemerides = new double[numberOfBodies][][];
     }
 
 
-    public void HorizonsAddBody(string planetCode, double[] data, double[] iPos, double[] iVel)
+    public void HorizonsAddBody(string planetCode, double[] data, double[] iPos, double[] iVel, double[][] fullEphemeris = null)
     {
+        if(fullEphemeris != null)
+        {
+            FullEphemerides[BodyCount] = fullEphemeris;
+        }
+        
         PreferredNames[BodyCount] = GetBestName(planetCode);
         InitialPositions[BodyCount] = iPos;
         InitialVelocities[BodyCount] = iVel;

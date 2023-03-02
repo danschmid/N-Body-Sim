@@ -57,8 +57,13 @@ public class Client : MonoBehaviour
     {
         //nb.MasterMasses = new List<double> { 1.9891e30, 3.285e23, 4.867e24, 5.972e24, 6.39e23, 1.8982e27, 5.683e26, 8.681e25, 1.024e26, 1.30900e22, 8.9319e22, 4.7998e22, 1.4819e23, 1.075938e23 };   // 
         PlanetCodes = sidebarUI.GetSelectedIDs();
+        
         DataMan.InitializeDataLists(DataMan.SelectedBodies.Count());
         DataMan.SelectedBodies = PlanetCodes;
+        DateTime now = DateTime.Now;
+        TimeSpan step = new TimeSpan(0, 0, 0, 1080, 0);
+        DataMan.InitializeSimulationSettings(now, now.AddYears(1), step);
+        
         string result = "PlanetCodes contents: ";
         foreach (var item in PlanetCodes)
         {
@@ -70,6 +75,7 @@ public class Client : MonoBehaviour
         {
             string url = DoURL(PlanetCodes[c]);
             yield return StartCoroutine( WebRequestText(url, PlanetCodes[c], false) );
+            //yield return new WaitForSeconds(2);
         }
 
         result = "List contents: ";
@@ -78,14 +84,17 @@ public class Client : MonoBehaviour
             result += item.ToString() + ", ";
         }
         Debug.Log(result);
-
+        
         //Debug.Log("PlanetCodes: " + PlanetCodes.Count());
         Debug.Log("Starting simulation...");
         Debug.Log(DataMan.InitialPositions.Count() + ", " + DataMan.InitialVelocities.Count() + ", " + DataMan.SelectedBodies.Count());
 
-        DataMan.InitializeSimulationSettings(DateTime.Now, DateTime.Now.AddDays(1), 1000);
-        nb.nBody(DataMan.Masses, DataMan.InitialPositions, DataMan.InitialVelocities, 31536000, 1000); //1000 or lower needed for high accuracy (generally any more than the 9 main planets+ the sun is too much for stepsize more than 1000)
+        
+        
+        nb.nBody(DataMan.Masses, DataMan.InitialPositions, DataMan.InitialVelocities, DataMan.Duration, (int)DataMan.TimeStep.TotalSeconds); //1000 or lower needed for high accuracy (generally any more than the 9 main planets+ the sun is too much for stepsize more than 1000)
         UnityEngine.Debug.Log("Simulation Complete");
+
+        Debug.Log("FinalPositions Size: " + DataMan.FinalPositions.Count() + " - " + DataMan.FinalPositions[0].Count() + " - " + DataMan.FinalPositions[0][0].Count() + ",   FullEphemerides size: " + DataMan.FullEphemerides.Count() + " - " + DataMan.FullEphemerides[0].Count() + " - " + DataMan.FullEphemerides[0][0].Count());
     }
 
 
@@ -139,8 +148,68 @@ public class Client : MonoBehaviour
         }
 
         sidebarUI.UpdateBodySelectionList();
-    }  
-    
+    }
+
+
+    public IEnumerator GetEphemeris(string rawText, string pcode)
+    {
+        //UnityEngine.Debug.Log("connected. Retrieving " + searchIndex() + "...");
+
+        Debug.Log(rawText);
+
+        data = new double[] { };
+        yield return StartCoroutine(GetPlanetaryData(rawText, pcode));
+
+
+
+        string ephemeris = GetBetween(rawText, "$$SOE", "$$EOE"); //ephermeris is the data for the planet's position and velocity vectors
+        if (ephemeris == null)
+        {
+            Debug.LogError("Ephemeris not found");
+            yield break;
+        }
+        ephemeris = ephemeris.Replace(" ", "");
+        Debug.Log(ephemeris);
+
+        string[] coordinates = ephemeris.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);  //gets the coordinates, which are separated by newlines for each date/timestep
+
+        
+        double[][] fullEphem = new double[DataMan.TotalSteps][];  //shape is [TotalSteps][position at step]
+        //int bodyIndex = DataMan.SelectedBodies.IndexOf(pcode);  //get the index number to specify what planet this is
+        for (int line = 0; line <= coordinates.Length; line++)
+        {
+            if (line >= DataMan.TotalSteps)
+            {
+                Debug.Log("DataMan.fullEphem is full! line number " + line);
+                continue;
+            }
+            string[] lineComponents = coordinates[line].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            fullEphem[line] = new double[] { double.Parse(lineComponents[2]), double.Parse(lineComponents[3]), double.Parse(lineComponents[4]) };
+        }
+        
+
+        //each line has the Julian date, calendar date, and then position, and velocity vectors separated by commas.  The final three CSVs are light-time, range, and range-rate which aren't used at the moment
+        string[] xyz = coordinates[0].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);  //this was getting coordinates[1], but im not sure why.  probably should get the first one so it is at the right time/timestep
+        Debug.Log("length: " + coordinates.Length);
+        Debug.Log("coordinates 0: " + coordinates[0] + "coordinates 1: " + coordinates[1]);
+
+        double x = double.Parse(xyz[2]);
+        double y = double.Parse(xyz[3]);
+        double z = double.Parse(xyz[4]);
+
+        double vx = double.Parse(xyz[5]);
+        double vy = double.Parse(xyz[6]);
+        double vz = double.Parse(xyz[7]);
+
+        //Scale((float)x, (float)y, (float)z, getName(indexNum));
+
+        double[] startp = new double[3] { x, y, z };
+        double[] startv = new double[3] { vx, vy, vz };
+
+        DataMan.HorizonsAddBody(pcode, data, startp, startv, fullEphem);
+        //return new double[][] { startp, startv, data };
+    }
+
 
     public IEnumerator GetPlanetaryData(string rawText, string pcode)
     {
@@ -312,51 +381,6 @@ public class Client : MonoBehaviour
     }
 
 
-    public IEnumerator GetEphemeris(string rawText, string pcode)
-    {
-        //UnityEngine.Debug.Log("connected. Retrieving " + searchIndex() + "...");
-
-        Debug.Log(rawText);
-
-        data = new double[] { };
-        yield return StartCoroutine(GetPlanetaryData(rawText, pcode));
-
-
-
-        string ephemeris = GetBetween(rawText, "$$SOE", "$$EOE"); //ephermeris is the data for the planet's position and velocity vectors
-        if (ephemeris == null)
-        {
-            Debug.LogError("Ephemeris not found");
-            yield break;
-        }
-        ephemeris = ephemeris.Replace(" ", "");
-        Debug.Log(ephemeris);
-
-        string[] coordinates = ephemeris.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);  //gets the coordinates, which are separated by newlines for each date/timestep
-
-        //each line has the Julian date, calendar date, and then position, and velocity vectors separated by commas.  The final three CSVs are light-time, range, and range-rate which aren't used at the moment
-        string[] xyz = coordinates[1].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-        //Debug.Log("length: " + xyz.Length);
-
-        double x = double.Parse(xyz[2]);
-        double y = double.Parse(xyz[3]);
-        double z = double.Parse(xyz[4]);
-
-        double vx = double.Parse(xyz[5]);
-        double vy = double.Parse(xyz[6]);
-        double vz = double.Parse(xyz[7]);
-
-        //Scale((float)x, (float)y, (float)z, getName(indexNum));
-
-        double[] startp = new double[3] { x, y, z };
-        double[] startv = new double[3] { vx, vy, vz };
-
-        DataMan.HorizonsAddBody(pcode, data, startp, startv);
-        //return new double[][] { startp, startv, data };
-
-    }
-
-
     public void Scale(float xf, float yf, float zf, string planet)
     {
         //Scale2(xf, yf, zf, planet);
@@ -405,11 +429,14 @@ public class Client : MonoBehaviour
 
     string DoURL(string command)
     {
-        string startTime = today;  //change these to get times from DataMan once that's working and the simulation settings should be saved in DataMan before getting planet info
-        string endTime = tomorrow;
-        string centercode = "500@0";
+        string startTime = DataMan.StartTime.ToString("yyyy-MM-dd");  //change these to get times from DataMan once that's working and the simulation settings should be saved in DataMan before getting planet info
+        string endTime = DataMan.EndTime.ToString("yyyy-MM-dd");
+        string stepSize = DataMan.TimeStep.TotalMinutes.ToString() + "%20minutes";  //can't be in seconds.  Has to be in minutes, hours, days, weeks, months or years
+        Debug.Log("URL step size: " + stepSize);
+
+        string centercode = "500@0";  //solar system barycenter will be the coordinate center
         
-        return ("https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27" + command + "%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&OUT_UNITS=%27AU%27&TABLE_TYPE=%27VECTOR%27&CENTER=%27" + centercode + "%27&START_TIME=%27" + startTime + "%27&STOP_TIME=%27" + endTime + "%27&STEP_SIZE=%271%20day%27&QUANTITIES=%272,9,20,23,24%27&CSV_FORMAT=%27YES%27");
+        return ("https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27" + command + "%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&OUT_UNITS=%27AU%27&TABLE_TYPE=%27VECTOR%27&CENTER=%27" + centercode + "%27&START_TIME=%27" + startTime + "%27&STOP_TIME=%27" + endTime + "%27&STEP_SIZE=%27"+ stepSize +"%27&QUANTITIES=%272,9,20,23,24%27&CSV_FORMAT=%27YES%27");
         //return ("https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27499%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTOR%27&CENTER=%27500@399%27&START_TIME=%272006-01-01%27&STOP_TIME=%272006-01-20%27&STEP_SIZE=%271%20d%27&QUANTITIES=%271,9,20,23,24,29%27");
     }
 
