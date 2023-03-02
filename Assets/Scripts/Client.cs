@@ -82,6 +82,8 @@ public class Client : MonoBehaviour
         //Debug.Log("PlanetCodes: " + PlanetCodes.Count());
         Debug.Log("Starting simulation...");
         Debug.Log(DataMan.InitialPositions.Count() + ", " + DataMan.InitialVelocities.Count() + ", " + DataMan.SelectedBodies.Count());
+
+        DataMan.InitializeSimulationSettings(DateTime.Now, DateTime.Now.AddDays(1), 1000);
         nb.nBody(DataMan.Masses, DataMan.InitialPositions, DataMan.InitialVelocities, 31536000, 1000); //1000 or lower needed for high accuracy (generally any more than the 9 main planets+ the sun is too much for stepsize more than 1000)
         UnityEngine.Debug.Log("Simulation Complete");
     }
@@ -403,7 +405,7 @@ public class Client : MonoBehaviour
 
     string DoURL(string command)
     {
-        string startTime = today;
+        string startTime = today;  //change these to get times from DataMan once that's working and the simulation settings should be saved in DataMan before getting planet info
         string endTime = tomorrow;
         string centercode = "500@0";
         

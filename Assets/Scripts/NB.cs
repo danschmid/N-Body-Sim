@@ -10,7 +10,6 @@ using UnityEngine.Profiling;
 
 public class NB : MonoBehaviour {
     public DataManager DataMan = DataManager.Instance;
-    int SelectedBodyCount;
 
 
     private double forceMagnitude(double mi, double mj, double separation)
@@ -172,9 +171,9 @@ public class NB : MonoBehaviour {
     
     private double[][] netForceVector(double[] m, double[][] p) 
     {
-        Profiler.BeginSample("Net Force Vector");
-        double[][] forces = new double[SelectedBodyCount][];
+        //Profiler.BeginSample("Net Force Vector");
         int pcount = p.Count();
+        double[][] forces = new double[pcount][];
 
         for (int i = 0; i < pcount; i++)
         {
@@ -189,15 +188,15 @@ public class NB : MonoBehaviour {
             }
         }
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
         return forces;  
     }
 
 
 
-    private void leapfrogUpdateParticles(double[] masses, double[][] positions, double[][] velocities, float dt, int currentStep, TrajectoryResult results)
+    private Tuple<double[][], double[][]> leapfrogUpdateParticles(double[] masses, double[][] positions, double[][] velocities, float dt, int currentStep, LeapfrogResults results)
     {
-        Profiler.BeginSample("Leapfrog Update Particles");
+        //Profiler.BeginSample("Leapfrog Update Particles");
         /*
         Evolve particles in time via leap - frog integrator scheme. This function
         takes masses, positions, velocities, and a time step dt as inputs.
@@ -253,6 +252,7 @@ public class NB : MonoBehaviour {
         // calculate the acceleration due to gravity, at the starting position
         double[][] startingAccelerations = elemDiv(startingForces, masses);
 
+        
         // calculate the ending position
         double[][] nudge = new double[masses.Count()][];
         double[][] endingPositions = new double[masses.Count()][];
@@ -265,8 +265,10 @@ public class NB : MonoBehaviour {
             endingPositions[i] = elemAdd(startingPositions[i], nudge[i]);
         }
 
+        
         // calculate net force vectors on all particles, at the ending position
         endingForces = netForceVector(masses, endingPositions);
+        
         // calculate the acceleration due to gravity, at the ending position
         endingAccelerations = elemDiv(endingForces, masses);
 
@@ -278,128 +280,129 @@ public class NB : MonoBehaviour {
             endingVelocities[i] = (elemAdd(elemMult(elemAdd(endingAccelerations[i], startingAccelerations[i]), (0.5 * dt)), startingVelocities[i]));
         }
 
-        results.AddResult(endingPositions, endingVelocities, currentStep);
-        Profiler.EndSample();
+        return new Tuple<double[][], double[][]> (endingPositions, endingVelocities);
+        //Profiler.EndSample();
 
     }
 
-    private class TrajectoryResult
+    private class LeapfrogResults
     {
-        private static TrajectoryResult inst;
-        public static TrajectoryResult Instance { get { if (inst == null) { inst = new TrajectoryResult(); } return inst; } private set { } }
-
         public double[] Times;
-        public double[][][] FinalPostitions;
-        public double[][][] FinalVelocities;
-        int StepCount = 0;
+        public double[][][] fPositions;
+        public double[][][] fVelocities;
+        DataManager DataMan = DataManager.Instance;
+        int TotalSteps;
+        public int BodyCount = DataManager.Instance.Masses.Count();
 
-        public void InitializeLists(int numberOfSteps)
+        public void InitializeLists(int totalSteps)  //Each entry in finalpositions represents 1 step of leapfrogUpdateParticles, except the first entry which is the initial conditions
         {
-            Times = new double[numberOfSteps];
-            FinalPostitions = new double[numberOfSteps][][];
-            FinalVelocities = new double[numberOfSteps][][];
-        }
+            TotalSteps = totalSteps;
 
-        public void AddTime(double t, int stepcount)
-        {
-            Times[stepcount] = t;
+            Times = new double[TotalSteps];
+            fPositions = new double[BodyCount][][];
+            fVelocities = new double[BodyCount][][];
+
+            for (int i = 0; i < BodyCount; i++)
+            {
+                fPositions[i] = new double[TotalSteps][];
+                fVelocities[i] = new double[TotalSteps][];
+            }
         }
         
-        public void AddResult(double[][] Pf, double[][] Vf, int currentStep)
+        public void AddResult(double[][] Pf, double[][] Vf, double Time, int currentStep)
         {
-            //Times.Add(t);
-            FinalPostitions[currentStep] = Pf;
-            FinalVelocities[currentStep] = Vf;
+            for (int i = 0; i < BodyCount; i++)
+            {
+                fPositions[i][currentStep] = elemDiv2(Pf[i], 1.496e+11);  //convert back to AU
+                fVelocities[i][currentStep] = Vf[i];  //probably should convert velocities back to AU/day but not sure because wwe aren't using these at the moment
+            }
+            Times[currentStep] = Time;
         }
         
         public void ClearAll()
         {
             Times = null;
-            FinalPostitions = null;
-            FinalVelocities = null;
+            fPositions = null;
+            fVelocities = null;
         }
 
-        public void SendToDataManagerAndDestroy(int numberOfSteps)
-        {
-            DataManager DataMan = DataManager.Instance;
-            DataMan.InitializeFinalLists(numberOfSteps);
+        public void SendToDataManager()
+        {         
+            DataMan.InitializeFinalLists(TotalSteps);
             DataMan.Times = Times;
-            DataMan.FinalPositions = FinalPostitions;
-            DataMan.FinalVelocities = FinalVelocities;
+            DataMan.FinalPositions = fPositions;
+            DataMan.FinalVelocities = fVelocities;
             ClearAll();
-            Instance = null;
-            inst = null;  //I think this should properly destroy the class instance when done?
         }
     }
 
-    private void Trajectories(double[] m, double[][] pi, double[][] vi, int time, int step, TrajectoryResult results)
+    private void Trajectories(double[] Masses, double[][] pi, double[][] vi, int time, int step, LeapfrogResults results)
     {
-        int stepcount = 0;
+        int currentStep = 1;  //Add one to currentStep since we store the initial conditions in the first index
 
-        double[] Masses = m;
         double[][] iPositions = pi;
         double[][] iVelocities = vi;
         int Time = time;
         
 
-        for (int t = 0; t < Time; t += step)
+        for (int t = step; t < Time; t += step)  //skip first step for initial conditions
         {
-            leapfrogUpdateParticles(Masses, iPositions, iVelocities, step, stepcount, results);
+            (iPositions, iVelocities) = leapfrogUpdateParticles(Masses, iPositions, iVelocities, step, currentStep, results);
 
-            if (results.FinalPostitions[stepcount] == null)
+            /*if (results.fPositions[currentStep] == null)
             {
-                Debug.LogWarning("could not find intermediate position at index " + stepcount);
-            }
-            iPositions = results.FinalPostitions[stepcount]; //Get intermediate positions and velocities (base each update off of the last one)
-            iVelocities = results.FinalVelocities[stepcount];
+                Debug.LogWarning("could not find intermediate position at index " + currentStep);
+            }*/
 
-            results.AddTime( (double)(t/86400), stepcount );
-            stepcount++;
+            results.AddResult(iPositions, iVelocities, (double)(t / 86400), currentStep);
+            currentStep++;
         }
 
     }
 
 
-    public void nBody(double[] masses, double[][] positions, double[][] velocities, int time, int step)
+    public void nBody(double[] Masses, double[][] InitialPositions, double[][] InitialVelocities, int Time, int Step)
     {
-        Profiler.BeginSample("nBody");
+        //Profiler.BeginSample("nBody");
         //need to add a method to intitialize DataManager's final position and velocity arrays using SelectedBodyCount and number of steps (SelectedBodyCount * steps = total number of final positions for all bodies combined)
-        SelectedBodyCount = masses.Count();
 
         //Debug.Log("nBody: " + pi.Count() + "--" + vi.Count() + "--" + masses.Count());
 
         //need to put in a check somewhere to verify that positions and velocity lists are of same length
-        int pcount = masses.Count();
+        int pcount = Masses.Count();
 
         double[][] positionsM = new double[pcount][];
         double[][] velocitiesM = new double[pcount][];
         for (int i = 0; i < pcount; i++)
         {
-            positionsM[i] = elemMult(positions[i], 1.496e+11);  //convert AU to m
-            velocitiesM[i] = elemMult(velocities[i], 1.731e+6);  //convert AU/day to m/s
+            positionsM[i] = elemMult(InitialPositions[i], 1.496e+11);  //convert AU to m
+            velocitiesM[i] = elemMult(InitialVelocities[i], 1.731e+6);  //convert AU/day to m/s
         }
 
-        TrajectoryResult results = TrajectoryResult.Instance;  //create an instance of trajectoryresult class to store the information generated from leapfrogUpdateParticles
-        results.InitializeLists(time / step);
+        LeapfrogResults results = new LeapfrogResults();  //create an instance of trajectoryresult class to store the information generated from leapfrogUpdateParticles
+        results.BodyCount = pcount;
+        results.InitializeLists(Time / Step);
+        results.AddResult(InitialPositions, InitialVelocities, 0, 0);  //add the initial conditions to the results list first
 
-        Trajectories(masses, positionsM, velocitiesM, time, step, results);
+        Trajectories(Masses, positionsM, velocitiesM, Time, Step, results);
 
-        double[][][] positions1 = results.FinalPostitions;
-        double[][][] velocities1 = results.FinalVelocities;
-        double[] times = results.Times;
-
-        for (int i = 0; i < positions1.Count(); i++)
+        /*for (int i = 0; i < results.BodyCount; i++)
         {
-            for (int j = 0; j < positions1[i].Count(); j++)  //replace count with number of steps * bodies when I figure out how to get it
+            for (int j = 0; j < (Time/Step)+1; j++)
             {
-                positions1[i][j] = elemDiv2(positions1[i][j], 1.496e+11);  //convert back to AU
+                if (results.fPositions[i][j] == null)
+                {
+                    Debug.LogWarning("could not find final position at index " + j);
+                }
+                results.fPositions[i][j] = elemDiv2(results.fPositions[i][j], 1.496e+11);  //convert back to AU
             }
-        }
+        }*/
 
-        Debug.Log("p: " + results.FinalPostitions.Count() + ", v: " + results.FinalVelocities.Count() + ", t: " + results.Times.Count()+ "... sending to dataman and destroying self");
-        results.SendToDataManagerAndDestroy(time/step);
+        Debug.Log("p: " + results.fPositions.Count() + ", v: " + results.fVelocities.Count() + ", t: " + results.Times.Count()+ "... sending to dataman and destroying self");
+        results.SendToDataManager();
+        results = null;  //this should be the only reference to the instance of the class, so it should be destroyed
         Debug.Log("DATA FROM DATAMAN: p: " + DataMan.FinalPositions.Count() + ", v: " + DataMan.FinalVelocities.Count() + ", t: " + DataMan.Times.Count());
-        Profiler.EndSample();
+        //Profiler.EndSample();
     }
 
     public void saveToFile()
@@ -509,7 +512,7 @@ public class NB : MonoBehaviour {
     }
 
 
-    private double[] elemDiv2(double[] L1, double n)
+    public static double[] elemDiv2(double[] L1, double n)  //this has to be static for now so that a function in LeapfrogResults can use it
     {
         double[] ddiv = new double[3];
         for (int y = 0; y < L1.Count(); y++)
@@ -522,7 +525,7 @@ public class NB : MonoBehaviour {
 
     private double[][] elemDiv(double[][] L1, double[] n)
     {
-        double[][] div = new double[SelectedBodyCount][];
+        double[][] div = new double[L1.Length][];
         int itr = 0;
         for(int i=0; i < L1.Count(); i++)
         {

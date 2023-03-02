@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using System.Linq;
 
 public class Orbit : MonoBehaviour {
 	public List<float> pos = new List<float>();
@@ -18,21 +19,18 @@ public class Orbit : MonoBehaviour {
     public DataManager DataMan = DataManager.Instance;
 
     public float DistanceScale = 250;
-	
-
-	// Use this for initialization
-	void Start()
-	{
-	}
 
 
 	public void startSim()
 	{
-        if(getCurr==true) 
+        if (getCurr==true) 
 		{
-			getCurrent();
-		}
-		else
+            //getCurrent();  Can't do this here and in bodiesmenu, or it will get called twice
+            //Debug.Log("DataMan.FinalPositions length: " + DataMan.FinalPositions.Length);
+            //Debug.Log("pos length: " + pos.Count);
+			
+        }
+        else
         {
 			getFromList();
 			getCurr = true;
@@ -55,27 +53,27 @@ public class Orbit : MonoBehaviour {
 
 	public void getCurrent()
     {
-		//Orbit.pos = new List<float>();
-		foreach (double[][] ddd in DataMan.FinalPositions)
-		{
-			foreach (double[] dd in ddd)
-			{
-				foreach (double d in dd)
-				{
-                    float fd = (float)d;
-                    pos.Add(fd);
+		pos = new List<float>();
+        //flattens the jagged array into a single array of all positions, and converts them into floats
+        for (int step = 0; step < DataMan.FinalPositions[0].Count(); step++)
+        {
+            for (int body = 0; body < DataMan.BodyCount; body++)
+            {
+                for (int component = 0; component < 3; component++)
+                {
+                    pos.Add((float)DataMan.FinalPositions[body][step][component]);
                 }
-			}
-		}
+            }
+        }
 
 
-		//UnityEngine.Debug.Log("MasterPos: " + DataMan.FinalPositions.Count());
-	}
+        //UnityEngine.Debug.Log("MasterPos: " + DataMan.FinalPositions.Count());
+    }
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		if(count>=10 && ready==true)
+		if(ready==true)
 		{
             //UnityEngine.Debug.Log(planets.Count + " bodies");
             foreach (string pl in DataMan.SelectedBodies)
@@ -89,10 +87,10 @@ public class Orbit : MonoBehaviour {
 			count=0;
 		}
 		count++;
-		if(pitr>pos.Count)
+		if(pitr>=pos.Count)
 		{
 			ready=false;
-			pos = new List<float>();
+			//pos = new List<float>();
 			pitr = 0;
 		}
 	}

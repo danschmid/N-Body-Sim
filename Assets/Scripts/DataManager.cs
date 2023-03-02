@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -9,7 +10,12 @@ public class DataManager: MonoBehaviour
 
     public Dictionary<string, string[]> Index; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
     public List<string> SelectedBodies;  //contains the Horizons ID# of each body selected from the body selection list.  The body's index in this array will be its index number in all of the data arrays below
-    
+
+    public DateTime StartTime { get; private set; }
+    public DateTime EndTime { get; private set; }
+    public int Duration { get; private set; }  //total time between start and end, in seconds
+    public int TimeStep { get; private set; }   //time step between each position, in seconds.  Should probably be something TotalTime is divisible by, or I should find a way to fix it if there isn't a good number of steps
+
     public string[] PreferredNames;  //names for each body, in the same order as SelectedBodies.  best name chosen by GetBestName()
     public double[][] InitialPositions;  //initial positions for each body, stored as double[].  The double[] for each body is stored at the same index in the outer array as SelectedBodies
     public double[][] InitialVelocities; //initial velocities for each body, stored as double[]
@@ -20,7 +26,7 @@ public class DataManager: MonoBehaviour
     public double[][][] FinalVelocities;
     public double[] Times;
 
-    private int BodyCount;
+    public int BodyCount;
     private int nonamecount;
 
     void Awake()
@@ -47,6 +53,17 @@ public class DataManager: MonoBehaviour
         FinalPositions = null;
         FinalVelocities = null;
         nonamecount = 0;
+    }
+
+    public void InitializeSimulationSettings(DateTime iTime, DateTime fTime, int step)
+    {
+        StartTime = iTime;
+        EndTime = fTime;
+        TimeStep = step;
+
+        TimeSpan dur = StartTime - EndTime;
+        Duration = (int)dur.TotalSeconds;  //should I cast to int here, or keep as double?
+        Debug.Log("Simulation Duration: " + Duration);
     }
 
     public void InitializeFinalLists(int numberOfSteps)
