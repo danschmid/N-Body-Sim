@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using System.IO;
+using System.Diagnostics.Tracing;
+using System.Linq;
 
 public class DataManager: MonoBehaviour
 {
@@ -128,6 +131,94 @@ public class DataManager: MonoBehaviour
             nonamecount += 1;
             return "Unnamed_Body_" + nonamecount.ToString();
         }
+    }
 
+    public void saveToFile()
+    {
+        var path = Application.dataPath + "/fPos.txt";
+        using (StreamWriter writetext = new StreamWriter(path, false))
+        {
+            int itr = 0;
+            //UnityEngine.Debug.Log("Writing to fPos" + position.Count());
+            for(int body = 0; body < FinalPositions.Count(); body++)
+            {
+                writetext.WriteLine("$Body$");
+                writetext.WriteLine(PreferredNames[body] + ":");
+                for(int step = 0; step < FinalPositions[0].Count(); step++)
+                {
+                    writetext.Write(FinalPositions[body][step][0] + "," + FinalPositions[body][step][1] + "," + FinalPositions[body][step][2] + ";");
+                }
+                writetext.WriteLine("$Body$");
+                writetext.WriteLine();
+            }
+            writetext.Close();
+        }
+
+        path = Application.dataPath + "/Ephemerides.txt";
+        using (StreamWriter writetext = new StreamWriter(path, false))
+        {
+            int itr = 0;
+            //UnityEngine.Debug.Log("Writing to fPos" + position.Count());
+            for (int body = 0; body < FullEphemerides.Count(); body++)
+            {
+                writetext.WriteLine("$Body$");
+                writetext.WriteLine(PreferredNames[body] + ":");
+                for (int step = 0; step < FullEphemerides[0].Count(); step++)
+                {
+                    writetext.Write(FullEphemerides[body][step][0] + "," + FullEphemerides[body][step][1] + "," + FullEphemerides[body][step][2] + ";");
+                }
+                writetext.WriteLine("$Body$");
+                writetext.WriteLine();
+            }
+            writetext.Close();
+        }
+
+
+
+        /*var path = Application.dataPath + "/fTimes.txt";
+        using (StreamWriter writetext = new StreamWriter(path, false))
+        {
+            UnityEngine.Debug.Log("Writing to fTimes" + MasterTimes.Count());
+            for (int i = 0; i < MasterTimes.Count(); i++)
+            {
+                //UnityEngine.Debug.Log(times[i]);
+                writetext.WriteLine(MasterTimes[i].ToString());
+                writetext.WriteLine();
+            }
+            writetext.Close();
+        }
+
+        //List<List<double[]>> positions2 = (List<List<double[]>>)traj[1];
+        //var path2 = Application.dataPath + "/fPos.txt";
+        //System.IO.File.WriteAllLines(path2, positions2[i].ToString());
+        */
+
+        /*//List<List<double[]>> velocities2 = (List<List<double[]>>)traj[2];
+        var path3 = Application.dataPath + "/fVel.txt";
+        using (StreamWriter writetext = new StreamWriter(path3, false))
+        {
+            UnityEngine.Debug.Log("Writing to fVel" + MasterVel.Count());
+            int itr = 0;
+            foreach (double[] da in MasterVel)
+            {
+                //UnityEngine.Debug.Log("fuck--- " + Ld2.Count());
+                writetext.Write("[");
+
+                //UnityEngine.Debug.Log("[" + da[0] + " " + da[1] + " " + da[2] + "]");
+                if (itr < MasterMasses.Count() - 1)
+                {
+                    writetext.WriteLine("[" + da[0] + " " + da[1] + " " + da[2] + "]");
+                }
+                else
+                {
+                    writetext.WriteLine("[" + da[0] + " " + da[1] + " " + da[2] + "]]");
+                    writetext.WriteLine();
+                    itr = 0;
+                }
+                itr++;
+                
+            }
+            writetext.Close();
+        }*/
     }
 }

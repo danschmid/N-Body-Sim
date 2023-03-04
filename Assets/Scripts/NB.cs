@@ -371,6 +371,11 @@ public class NB : MonoBehaviour {
         //need to put in a check somewhere to verify that positions and velocity lists are of same length
         int pcount = Masses.Count();
 
+        LeapfrogResults results = new LeapfrogResults();  //create an instance of trajectoryresult class to store the information generated from leapfrogUpdateParticles
+        results.BodyCount = pcount;
+        results.InitializeLists(Time / Step);
+        results.AddResult(InitialPositions, InitialVelocities, 0, 0);  //add the initial conditions to the results list first
+
         /*if ((Time / Step) % 1 == 0)  //if the number of steps (used for indexing arrays) is not a whole number, adjust the time so it is.  Stepsize should stay the same since it has an effect on accuracy
         {
             
@@ -383,11 +388,6 @@ public class NB : MonoBehaviour {
             positionsM[i] = elemMult(InitialPositions[i], 1.496e+11);  //convert AU to m
             velocitiesM[i] = elemMult(InitialVelocities[i], 1.731e+6);  //convert AU/day to m/s
         }
-
-        LeapfrogResults results = new LeapfrogResults();  //create an instance of trajectoryresult class to store the information generated from leapfrogUpdateParticles
-        results.BodyCount = pcount;
-        results.InitializeLists(Time / Step);
-        results.AddResult(InitialPositions, InitialVelocities, 0, 0);  //add the initial conditions to the results list first
 
         Trajectories(Masses, positionsM, velocitiesM, Time, Step, results);
 
@@ -408,90 +408,6 @@ public class NB : MonoBehaviour {
         results = null;  //this should be the only reference to the instance of the class, so it should be destroyed
         Debug.Log("DATA FROM DATAMAN: p: " + DataMan.FinalPositions.Count() + ", v: " + DataMan.FinalVelocities.Count() + ", t: " + DataMan.Times.Count());
         //Profiler.EndSample();
-    }
-
-    public void saveToFile()
-    {
-        Debug.Log("Saving to file temporarily out of order");
-        return;
-        /*var path = Application.dataPath + "/fTimes.txt";
-        using (StreamWriter writetext = new StreamWriter(path, false))
-        {
-            UnityEngine.Debug.Log("Writing to fTimes" + MasterTimes.Count());
-            for (int i = 0; i < MasterTimes.Count(); i++)
-            {
-                //UnityEngine.Debug.Log(times[i]);
-                writetext.WriteLine(MasterTimes[i].ToString());
-                writetext.WriteLine();
-            }
-            writetext.Close();
-        }
-
-        //List<List<double[]>> positions2 = (List<List<double[]>>)traj[1];
-        //var path2 = Application.dataPath + "/fPos.txt";
-        //System.IO.File.WriteAllLines(path2, positions2[i].ToString());
-
-
-
-
-        var path2 = Application.dataPath + "/fPos.txt";
-        using (StreamWriter writetext = new StreamWriter(path2, false))
-        {
-            int itr = 0;
-            //UnityEngine.Debug.Log("Writing to fPos" + position.Count());
-            foreach (double[] da in MasterPos)
-            {
-                //UnityEngine.Debug.Log("fuck1--- " + Ld.Count());
-                
-                if (itr < MasterMasses.Count()-1)
-                {
-                    writetext.WriteLine("[" + da[0] + " " + da[1] + " " + da[2] + "]");
-                    itr++;
-                }
-                else
-                {
-                    writetext.WriteLine("[" + da[0] + " " + da[1] + " " + da[2] + "]]");
-                    writetext.WriteLine();
-                    writetext.Write("[");
-                    itr = 0;
-                }
-                
-
-            }
-            writetext.Write("end]");
-            writetext.Close();
-        }
-
-
-
-
-        //List<List<double[]>> velocities2 = (List<List<double[]>>)traj[2];
-        var path3 = Application.dataPath + "/fVel.txt";
-        using (StreamWriter writetext = new StreamWriter(path3, false))
-        {
-            UnityEngine.Debug.Log("Writing to fVel" + MasterVel.Count());
-            int itr = 0;
-            foreach (double[] da in MasterVel)
-            {
-                //UnityEngine.Debug.Log("fuck--- " + Ld2.Count());
-                writetext.Write("[");
-
-                //UnityEngine.Debug.Log("[" + da[0] + " " + da[1] + " " + da[2] + "]");
-                if (itr < MasterMasses.Count() - 1)
-                {
-                    writetext.WriteLine("[" + da[0] + " " + da[1] + " " + da[2] + "]");
-                }
-                else
-                {
-                    writetext.WriteLine("[" + da[0] + " " + da[1] + " " + da[2] + "]]");
-                    writetext.WriteLine();
-                    itr = 0;
-                }
-                itr++;
-                
-            }
-            writetext.Close();
-        }*/
     }
 
 

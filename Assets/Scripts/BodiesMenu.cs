@@ -98,7 +98,7 @@ public class BodiesMenu : MonoBehaviour {
 
             if (GUILayout.Button("Save To File"))
             {
-                nb.saveToFile();
+                DataMan.saveToFile();
                 boxOpen = false;
             }
 
