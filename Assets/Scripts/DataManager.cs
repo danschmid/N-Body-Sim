@@ -69,7 +69,8 @@ public class DataManager: MonoBehaviour
 
         TimeSpan dur = EndTime - StartTime;
         Duration = (int)dur.TotalSeconds;  //should I cast to int here, or keep as double?  Should probably be a whole number anyways but idk yet
-        TotalSteps = Duration / (int)TimeStep.TotalSeconds;
+        TotalSteps = Duration / (int)TimeStep.TotalSeconds;  //array isn't quite big enough for all data from JPL. Always missing 2. Probably due to rounding errors
+        Debug.Log("duration: " + Duration + ", totalsteps: " + TotalSteps);
 
         Debug.Log("Start DateTime: " + StartTime.ToString("yyyy-MM-dd\\ T HH:mm:ss") + "  --  End: " + EndTime.ToString("yyyy-MM-dd\\ T HH:mm:ss"));
         Debug.Log("Simulation Duration: " + Duration);
@@ -201,7 +202,6 @@ public class DataManager: MonoBehaviour
             int itr = 0;
             foreach (double[] da in MasterVel)
             {
-                //UnityEngine.Debug.Log("fuck--- " + Ld2.Count());
                 writetext.Write("[");
 
                 //UnityEngine.Debug.Log("[" + da[0] + " " + da[1] + " " + da[2] + "]");

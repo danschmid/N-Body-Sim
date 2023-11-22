@@ -327,7 +327,7 @@ GameObject:
   - component: {fileID: 4603782879722366052}
   - component: {fileID: 4603782879722366051}
   m_Layer: 5
-  m_Name: pg1 - Object Selection
+  m_Name: pg2 - ObjectDataSel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -345,7 +345,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4603782880593232119}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -602,7 +602,7 @@ GameObject:
   - component: {fileID: 4603782880136035927}
   - component: {fileID: 4603782880136035912}
   m_Layer: 5
-  m_Name: pg3 - Data
+  m_Name: pg1 - SimSettings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -621,7 +621,7 @@ RectTransform:
   m_Children:
   - {fileID: 4603782880740553069}
   m_Father: {fileID: 4603782880593232119}
-  m_RootOrder: 2
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
@@ -1005,7 +1005,7 @@ GameObject:
   - component: {fileID: 4603782880481561851}
   - component: {fileID: 4603782880481561852}
   m_Layer: 5
-  m_Name: pg2 - Display
+  m_Name: pg3 - DisplaySettings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1024,7 +1024,7 @@ RectTransform:
   m_Children:
   - {fileID: 4603782879406894625}
   m_Father: {fileID: 4603782880593232119}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
@@ -1137,9 +1137,9 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 4603782880136035913}
   - {fileID: 4603782879722366055}
   - {fileID: 4603782880481561853}
-  - {fileID: 4603782880136035913}
   - {fileID: 4603782879583774435}
   m_Father: {fileID: 4603782880320644689}
   m_RootOrder: 3
@@ -1404,6 +1404,7 @@ MonoBehaviour:
     type: 3}
   ExpandAreaPrefab: {fileID: 4644646819675721275, guid: c298c67c144b50941b4616ca61b40203,
     type: 3}
+  DataMan: {fileID: 0}
 --- !u!1 &4603782881069584724
 GameObject:
   m_ObjectHideFlags: 0

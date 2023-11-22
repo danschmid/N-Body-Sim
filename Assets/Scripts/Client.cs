@@ -41,8 +41,6 @@ public class Client : MonoBehaviour
         today = System.DateTime.Now.ToString("yyyy-MM-dd");
         tomorrow = System.DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
 
-        //PlanetCodes = new List<string> { "10", "199", "299", "399", "499", "599", "699", "799", "899", "999", "501", "502", "503", "504" };
-
         StartCoroutine( WebRequestText(HorizonsInfoURL, "0", true) );  //updates the index with names and IDs of available bodies
     }
 
@@ -55,7 +53,6 @@ public class Client : MonoBehaviour
 
     public IEnumerator UpdateSelectedBodyData()
     {
-        //nb.MasterMasses = new List<double> { 1.9891e30, 3.285e23, 4.867e24, 5.972e24, 6.39e23, 1.8982e27, 5.683e26, 8.681e25, 1.024e26, 1.30900e22, 8.9319e22, 4.7998e22, 1.4819e23, 1.075938e23 };   // 
         PlanetCodes = sidebarUI.GetSelectedIDs();
         
         DataMan.InitializeDataLists(DataMan.SelectedBodies.Count());
@@ -73,8 +70,8 @@ public class Client : MonoBehaviour
 
         for (int c = 0; c < PlanetCodes.Count(); c++)
         {
-            string url = DoURL(PlanetCodes[c]);
-            yield return StartCoroutine( WebRequestText(url, PlanetCodes[c], false) );
+            string url = DoHorizonsURL(PlanetCodes[c]);
+            yield return StartCoroutine( WebRequestText(url, PlanetCodes[c], false) ); //wait so that it doesn't overload the server with requests
             //yield return new WaitForSeconds(2);
         }
 
@@ -87,7 +84,7 @@ public class Client : MonoBehaviour
         
         //Debug.Log("PlanetCodes: " + PlanetCodes.Count());
         Debug.Log("Starting simulation...");
-        Debug.Log(DataMan.InitialPositions.Count() + ", " + DataMan.InitialVelocities.Count() + ", " + DataMan.SelectedBodies.Count());
+        //Debug.Log(DataMan.InitialPositions.Count() + ", " + DataMan.InitialVelocities.Count() + ", " + DataMan.SelectedBodies.Count());
 
         
         
@@ -147,7 +144,7 @@ public class Client : MonoBehaviour
             DataMan.Index.Add(namecode[0], new string[3] { namecode[1], namecode[2], namecode[3] }); //Horizons ID#, [Name, Designation, IAU/Aliases/other]
         }
 
-        sidebarUI.UpdateBodySelectionList();
+        //sidebarUI.UpdateBodySelectionList(); moved to only update when data tab is opened
     }
 
 
@@ -158,7 +155,7 @@ public class Client : MonoBehaviour
         Debug.Log(rawText);
 
         data = new double[] { };
-        yield return StartCoroutine(GetPlanetaryData(rawText, pcode));
+        yield return StartCoroutine(ParsePlanetaryData(rawText, pcode));
 
 
 
@@ -211,7 +208,7 @@ public class Client : MonoBehaviour
     }
 
 
-    public IEnumerator GetPlanetaryData(string rawText, string pcode)
+    public IEnumerator ParsePlanetaryData(string rawText, string pcode)
     {
         Debug.Log("getting planetary data...");
         // use regular expressions to find the number following "Vol. Mean Radius (km) = ", "Vol. mean radius, km = ", or "Radius (km)  = "
@@ -355,7 +352,7 @@ public class Client : MonoBehaviour
 
     public double CalculateMass(double GM)
     {
-        double G = 6.67430e-21; // gravitational constant, converted from usual units: 10^-11 m^3*kg^-1*s^-2 to 10^-20 km^3*kg^-1*s^-2 
+        double G = 6.67430e-21; // gravitational constant, converted from usual units: 10^-11 m^3*kg^-1*s^-2 to 10^-21 km^3*kg^-1*s^-2, so that the resulting mass will be in kg
         return (GM / G);
     }
 
@@ -381,30 +378,6 @@ public class Client : MonoBehaviour
     }
 
 
-    public void Scale(float xf, float yf, float zf, string planet)
-    {
-        //Scale2(xf, yf, zf, planet);
-
-
-        //int itr = 2;
-        GameObject Gobj;
-        if (GameObject.Find(planet) != null)
-        {
-            Gobj = GameObject.Find(planet);
-        }
-        else
-        {
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            go.AddComponent<HelloWorld>();
-            go.name = planet;
-            Gobj = GameObject.Find(planet);
-            float f = (float)0.1;
-            Gobj.transform.localScale = new UnityEngine.Vector3(f, f, f);
-        }
-        Gobj.transform.position = new UnityEngine.Vector3(xf * 250, yf * 250, zf * 250);
-    }
-
-
     public string GetBetween(string strSource, string strStart, string strEnd)
     {
         int startIndex = strSource.IndexOf(strStart, 0) + strStart.Length;
@@ -427,9 +400,9 @@ public class Client : MonoBehaviour
         return Index[indexNum][0];
     }*/
 
-    string DoURL(string command)
+    string DoHorizonsURL(string command) //formats the URL to get planetary info from the JPL Horizons web API
     {
-        string startTime = DataMan.StartTime.ToString("yyyy-MM-dd");  //change these to get times from DataMan once that's working and the simulation settings should be saved in DataMan before getting planet info
+        string startTime = DataMan.StartTime.ToString("yyyy-MM-dd"); //simulation parameters must be set before getting planet info
         string endTime = DataMan.EndTime.ToString("yyyy-MM-dd");
         string stepSize = DataMan.TimeStep.TotalMinutes.ToString() + "%20minutes";  //can't be in seconds.  Has to be in minutes, hours, days, weeks, months or years
         Debug.Log("URL step size: " + stepSize);
@@ -438,21 +411,5 @@ public class Client : MonoBehaviour
         
         return ("https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27" + command + "%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&OUT_UNITS=%27AU%27&TABLE_TYPE=%27VECTOR%27&CENTER=%27" + centercode + "%27&START_TIME=%27" + startTime + "%27&STOP_TIME=%27" + endTime + "%27&STEP_SIZE=%27"+ stepSize +"%27&QUANTITIES=%272,9,20,23,24%27&CSV_FORMAT=%27YES%27");
         //return ("https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27499%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTOR%27&CENTER=%27500@399%27&START_TIME=%272006-01-01%27&STOP_TIME=%272006-01-20%27&STEP_SIZE=%271%20d%27&QUANTITIES=%271,9,20,23,24,29%27");
-    }
-
-
-    bool IsAllNumbers(string st2)
-    {
-        foreach (char c in st2)
-        {
-            if (char.IsNumber(c) == false)
-            {
-                if (c != '-' && c != '.' && c != ' ')
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }

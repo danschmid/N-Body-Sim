@@ -7,7 +7,10 @@ using UnityEngine.UI;
 public class TabHandler : MonoBehaviour
 {
     public GameObject page;  //have to manually set a reference to the page you want the tab to control
-    
+    public SidebarUI sidebarUI;
+
+    bool isLoaded = false;
+
     public void OnClick()
     {
         //if any other tabs in the group are active, deactivate them
@@ -28,5 +31,21 @@ public class TabHandler : MonoBehaviour
 
         //Debug.Log("Setting active: " + page.gameObject.name);
         page.SetActive(true);
+    }
+
+    public void UpdateBodySelection()
+    {
+        if (!isLoaded)
+        {
+            isLoaded = true;
+            try
+            {
+                sidebarUI.UpdateBodySelectionList();
+            }
+            catch
+            {
+                Debug.LogWarning("Body selection list could not be updated");
+            }
+        }
     }
 }

@@ -42,7 +42,7 @@ public class SidebarUI : MonoBehaviour
 
     void Start()
     {
-        bodySelectionList = GameObject.Find("pg1 - Object Selection");
+        bodySelectionList = GameObject.Find("pg2 - ObjectDataSel");
     }
     
     public void UpdateBodySelectionList()  //gets the celestial bodies available on Horizons from Client.Index, and populates the body selection list in the sidebar
@@ -106,7 +106,7 @@ public class SidebarUI : MonoBehaviour
 
             if (system.Key == "-")
             {
-                expandArea = InstantiateHeader("Spacecraft"); ;
+                expandArea = InstantiateHeader("Spacecraft");
 
                 foreach (string id in system.Value)
                 {

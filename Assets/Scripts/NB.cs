@@ -40,13 +40,14 @@ public class NB : MonoBehaviour {
             683.935546875
         */
 
-        double G = 6.67e-11;                       // m3 kg-1 s-2
+        double G = 6.67430e-11;                       // m3 kg-1 s-2
         double force = (G * mi * mj) / Math.Pow(separation, 2);
         return (force);      // N
     }
 
 
-    private double Magnitude(double[] vec)                       //Can probably replace this with vector.magnitude if switched back to floats
+    private double Magnitude(double[] vec)  //Can probably replace this with vector.magnitude if switched back to floats.  Or create a custom class for vectors of doubles, with this method as a part of it.
+                                            //Does the SIMD intrinsic Vector<T> allow doubles?
     {
         /*
         Compute magnitude of any vector with an arbitrary number of elements.
@@ -59,6 +60,7 @@ public class NB : MonoBehaviour {
         }
 
         return Math.Sqrt(sum);
+
     }
 
 
@@ -87,7 +89,7 @@ public class NB : MonoBehaviour {
             [-0.28571429, -0.85714286,  0.42857143]
         */
 
-        // calculate the separation between the two vectors
+        // calculate the separation between the two vectors.  this is the 2nd time we calc separation, probably don't need to do this twice?
         double[] separation = new double[3];
         for (int i = 0; i < 3; i++)
         {
@@ -285,7 +287,7 @@ public class NB : MonoBehaviour {
 
     }
 
-    private class LeapfrogResults
+    private class LeapfrogResults  //does this really need its own class?  I think I just did this to make code look cleaner but I'm not sure how it affects performance
     {
         public double[] Times;
         public double[][][] fPositions;
@@ -363,7 +365,7 @@ public class NB : MonoBehaviour {
 
     public void nBody(double[] Masses, double[][] InitialPositions, double[][] InitialVelocities, int Time, int Step)
     {
-        //Profiler.BeginSample("nBody");
+        Profiler.BeginSample("nBody");
         //need to add a method to intitialize DataManager's final position and velocity arrays using SelectedBodyCount and number of steps (SelectedBodyCount * steps = total number of final positions for all bodies combined)
 
         //Debug.Log("nBody: " + pi.Count() + "--" + vi.Count() + "--" + masses.Count());
@@ -371,7 +373,7 @@ public class NB : MonoBehaviour {
         //need to put in a check somewhere to verify that positions and velocity lists are of same length
         int pcount = Masses.Count();
 
-        LeapfrogResults results = new LeapfrogResults();  //create an instance of trajectoryresult class to store the information generated from leapfrogUpdateParticles
+        LeapfrogResults results = new LeapfrogResults();  //create an instance of leapfrogresults class to store the information generated from leapfrogUpdateParticles
         results.BodyCount = pcount;
         results.InitializeLists(Time / Step);
         results.AddResult(InitialPositions, InitialVelocities, 0, 0);  //add the initial conditions to the results list first
@@ -407,10 +409,12 @@ public class NB : MonoBehaviour {
         results.SendToDataManager();
         results = null;  //this should be the only reference to the instance of the class, so it should be destroyed
         Debug.Log("DATA FROM DATAMAN: p: " + DataMan.FinalPositions.Count() + ", v: " + DataMan.FinalVelocities.Count() + ", t: " + DataMan.Times.Count());
-        //Profiler.EndSample();
+        Profiler.EndSample();
     }
 
 
+    //I think that most of these could be SIMD enabled if I used generic Vector<T> rather than arrays of doubles.  System.numerics namespace will allow SIMD acceleration on generic vectors.  will this increase mem cost?
+    //I think Vector<T> still works with doubles too on the right hardware, although not as well as with floats?  
     private double[] elemAdd(double[] L1, double[] L2)
     {
         double[] sum = new double[3];
@@ -464,7 +468,7 @@ public class NB : MonoBehaviour {
         }
         return div;
     }
-    private List<double[]> elemDiv(double[][] L1, List<double> n)
+    /*private List<double[]> elemDiv(double[][] L1, List<double> n)  //currently unused
     {
         List<double[]> div = new List<double[]>();
         int itr = 0;
@@ -482,6 +486,6 @@ public class NB : MonoBehaviour {
             }
         }
         return div;
-    }
+    }*/
 }
 
