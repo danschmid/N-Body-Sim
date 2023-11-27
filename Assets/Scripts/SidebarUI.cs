@@ -1,13 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
+using UnityEditorInternal;
 
 public class SidebarUI : MonoBehaviour
 {
-    public RectTransform panel;
     public Client client;
-    public GameObject bodySelectionList;
+    public DataManager DataMan = DataManager.Instance;
+    public TabHandler tabhandler;
+
     Dictionary<string, string[]> index;
     public List<bool> ToggleStates;
     public List<string> ToggleNames;
@@ -16,9 +20,10 @@ public class SidebarUI : MonoBehaviour
     public GameObject ExpandHeaderPrefab;
     public GameObject ExpandAreaPrefab;
 
-    public DataManager DataMan = DataManager.Instance;
-
-    int defaultnamecount = 0;
+    public GameObject page1;
+    public GameObject page2;
+    public GameObject page3;
+    public GameObject page4;
 
     public List<string> GetSelectedIDs()
     {
@@ -42,12 +47,10 @@ public class SidebarUI : MonoBehaviour
 
     void Start()
     {
-        bodySelectionList = GameObject.Find("pg2 - ObjectDataSel");
     }
     
     public void UpdateBodySelectionList()  //gets the celestial bodies available on Horizons from Client.Index, and populates the body selection list in the sidebar
     {
-
         index = DataMan.Index; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
         Dictionary<string, List<string>> sortedIndex = new Dictionary<string, List<string>> {}; //[first char of ID#, [all horizons ID#s with that first char]]   this helps to sort the major planetary bodies and their satellites for populating the list
         int indexlength = index.Count;
@@ -70,7 +73,7 @@ public class SidebarUI : MonoBehaviour
             {
                 continue;
             }
-            else if (body.Value[2].Contains("Lagrange"))  //also skip lagrange points, but I should store all of these and make them available
+            else if (body.Value[2].Contains("Lagrange"))  //also skip lagrange points, but I should store all of these and make them available as massless unsimulated particles.  Also figure out how to calculate these myself
             {
                 continue;
             }
@@ -127,7 +130,7 @@ public class SidebarUI : MonoBehaviour
                 toggle = InstantiateToggle(bestName, null, true);
                 ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
                 toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
-                Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
+                //Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
                 toggleCount++;
 
                 if (system.Value.Count > 1)
@@ -149,26 +152,20 @@ public class SidebarUI : MonoBehaviour
                 }
             }
         }
-        Debug.Log("Toggles Length: " + ToggleStates.Count + ", Index Length: " + sortedIndex.Count());
+        //Debug.Log("Toggles Length: " + ToggleStates.Count + ", Index Length: " + sortedIndex.Count());
     }
-
-    void AddToDict()
-    {
-
-    }
-
 
     GameObject InstantiateHeader(string name)
     {
-        GameObject expandHeader = Instantiate(ExpandHeaderPrefab, bodySelectionList.transform);
-        expandHeader.transform.SetParent(bodySelectionList.transform);
+        GameObject expandHeader = Instantiate(ExpandHeaderPrefab, page2.transform);
+        expandHeader.transform.SetParent(page2.transform);
 
         Transform horizontalElements = expandHeader.transform.Find("Horizontal Elements");
         Text headerText = horizontalElements.GetComponentInChildren<Text>();
         headerText.text = name;
 
-        GameObject expandArea = Instantiate(ExpandAreaPrefab, bodySelectionList.transform);
-        expandArea.transform.SetParent(bodySelectionList.transform);
+        GameObject expandArea = Instantiate(ExpandAreaPrefab, page2.transform);
+        expandArea.transform.SetParent(page2.transform);
 
         ExpandButtonHandler buttonHandler = horizontalElements.GetComponentInChildren<ExpandButtonHandler>();
         buttonHandler.expandCanvas = expandArea.GetComponent<Canvas>();
@@ -180,8 +177,8 @@ public class SidebarUI : MonoBehaviour
     {
         if (parent == null)
         {
-            Debug.Log("parent set to default");
-            parent = bodySelectionList;
+            //Debug.Log("parent set to default");
+            parent = page2;
         }
         GameObject toggle = Instantiate(TogglePrefab, parent.transform);
         toggle.transform.SetParent(parent.transform);

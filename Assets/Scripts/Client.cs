@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine.UI;
+using System.Runtime;
 //using Newtonsoft.Json;
 //using UnityEngine.Modules.Jsonserialize;
 public class Client : MonoBehaviour
@@ -54,6 +55,12 @@ public class Client : MonoBehaviour
     public IEnumerator UpdateSelectedBodyData()
     {
         PlanetCodes = sidebarUI.GetSelectedIDs();
+
+        if(PlanetCodes == null)
+        {
+            Debug.LogWarning("Please select some bodies to simulate from the data tab, or input a custom body.");
+            yield break;
+        }
         
         DataMan.InitializeDataLists(DataMan.SelectedBodies.Count());
         DataMan.SelectedBodies = PlanetCodes;
@@ -61,37 +68,42 @@ public class Client : MonoBehaviour
         TimeSpan step = new TimeSpan(0, 0, 0, 1080, 0);
         DataMan.InitializeSimulationSettings(now, now.AddYears(1), step);
         
-        string result = "PlanetCodes contents: ";
+        /*string result = "PlanetCodes contents: ";
         foreach (var item in PlanetCodes)
         {
             result += item.ToString() + ", ";
         }
-        Debug.Log(result);
+        Debug.Log(result);*/
 
-        for (int c = 0; c < PlanetCodes.Count(); c++)
+        for (int c = 0; c < PlanetCodes.Count()-1; c++)
         {
             string url = DoHorizonsURL(PlanetCodes[c]);
-            yield return StartCoroutine( WebRequestText(url, PlanetCodes[c], false) ); //wait so that it doesn't overload the server with requests
-            //yield return new WaitForSeconds(2);
+            StartCoroutine(WebRequestText(url, PlanetCodes[c], false)); //wait so that it doesn't overload the server with requests
+            yield return new WaitForSeconds(4);  //making calls more frequently than every 4 seconds begins to deny us service
         }
+        string lastPlanet = PlanetCodes[PlanetCodes.Count()-1];
+        yield return StartCoroutine(WebRequestText(DoHorizonsURL(lastPlanet), lastPlanet, false)); //wait for last request to process before trying to simulate
 
-        result = "List contents: ";
+
+
+        /*result = "List contents: ";
         foreach (var item in DataMan.Masses)
         {
             result += item.ToString() + ", ";
         }
         Debug.Log(result);
-        
-        //Debug.Log("PlanetCodes: " + PlanetCodes.Count());
-        Debug.Log("Starting simulation...");
-        //Debug.Log(DataMan.InitialPositions.Count() + ", " + DataMan.InitialVelocities.Count() + ", " + DataMan.SelectedBodies.Count());
 
-        
-        
+        Debug.Log("PlanetCodes: " + PlanetCodes.Count());
+        Debug.Log(DataMan.InitialPositions.Count() + ", " + DataMan.InitialVelocities.Count() + ", " + DataMan.SelectedBodies.Count());
+         */
+
+        Debug.Log("Starting simulation...");
         nb.nBody(DataMan.Masses, DataMan.InitialPositions, DataMan.InitialVelocities, DataMan.Duration, (int)DataMan.TimeStep.TotalSeconds); //1000 or lower needed for high accuracy (generally any more than the 9 main planets+ the sun is too much for stepsize more than 1000)
         UnityEngine.Debug.Log("Simulation Complete");
 
-        Debug.Log("FinalPositions Size: " + DataMan.FinalPositions.Count() + " - " + DataMan.FinalPositions[0].Count() + " - " + DataMan.FinalPositions[0][0].Count() + ",   FullEphemerides size: " + DataMan.FullEphemerides.Count() + " - " + DataMan.FullEphemerides[0].Count() + " - " + DataMan.FullEphemerides[0][0].Count());
+        /*Debug.Log("FinalPositions Size: " + DataMan.FinalPositions.Count() + " - " + DataMan.FinalPositions[0].Count() + " - " + DataMan.FinalPositions[0][0].Count() +
+            ", FullEphemerides size: " + DataMan.FullEphemerides.Count() + " - " + DataMan.FullEphemerides[0].Count() + " - " + DataMan.FullEphemerides[0][0].Count());*/
+
     }
 
 
@@ -110,29 +122,37 @@ public class Client : MonoBehaviour
             string output = www.downloadHandler.text;
             if(getIndex)
             {
-                GetIndex(output, pcode);
+                ParseIndex(output, pcode);
             }
             else
             {
-                yield return StartCoroutine(GetEphemeris(output, pcode));
+                yield return StartCoroutine(ParseEphemeris(output, pcode));
             }
         }
     }
 
 
-    public void GetIndex(string rawText, string pcode)  //pcode is useless here but is required for the callback function to work.
+    public void ParseIndex(string rawText, string pcode)  //pcode is useless here but is required for the callback function to work.
     {
         DataMan.ClearAllData();
 
-        UnityEngine.Debug.Log("getting list...");
-
+        Debug.Log("getting list...");
         Debug.Log(rawText);
+
         rawText = rawText.Substring(rawText.IndexOf("0")); //remove header
-        rawText = rawText.Remove(rawText.IndexOf("Number of matches =")); //remove footer
+        rawText = rawText.Remove(rawText.IndexOf(". Use ID#")); //remove footer but keep the "number of matches = "
+        int endingIndex = rawText.IndexOf("Number of matches =");
+        string numberMatches = rawText.Substring(endingIndex);  //store the number of matches and then remove this line
+        rawText = rawText.Remove(endingIndex);
         rawText = rawText.Trim();
-        foreach (string line in rawText.Split('\n'))  //one line at a time
+
+        foreach (string line in rawText.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))  //one line at a time
         {
-            //UnityEngine.Debug.Log(line);
+            if(line.Trim().Length == 0)  //I guess StringSplitOptions.RemoveEmptyEntries somehow misses some, specifically on the last line.  Is there a better way to do this?
+            {
+                //Debug.Log("Empty string!");
+                continue;
+            }
             string[] namecode = new string[4];
             namecode[0] = line.Substring(0, 9).Trim();
             namecode[1] = line.Substring(10, 35).Trim();
@@ -148,7 +168,7 @@ public class Client : MonoBehaviour
     }
 
 
-    public IEnumerator GetEphemeris(string rawText, string pcode)
+    public IEnumerator ParseEphemeris(string rawText, string pcode)
     {
         //UnityEngine.Debug.Log("connected. Retrieving " + searchIndex() + "...");
 
@@ -210,6 +230,34 @@ public class Client : MonoBehaviour
 
     public IEnumerator ParsePlanetaryData(string rawText, string pcode)
     {
+        //the solution I have below is terrible, this is a WIP on making the parsing better
+        /*foreach (string line in rawText.Split(new string[] { "\\n" }, StringSplitOptions.None)) //split by newline but instead of a real newline it is literally a backslash and a n (\n)
+        {
+            string column1 = line.Substring(0, 45).Replace(" ", "");
+            string column2 = line.Substring(45);  //do not trim this column yet, as it may have some meaningful indentation
+
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            string currentHeader = "";
+
+            if (column2.EndsWith(":")) //only happens in column2, header for indented content below 
+            {
+                currentHeader = column1.Trim(':');
+                data.Add(currentHeader, data[currentHeader] = new List<string>());
+            }
+            if (column2.StartsWith(" "))  //indented under a header
+            {
+                ((List<string>)data[currentHeader]).Add(column2.Replace(" ","") );
+                Debug.Log("Line:" + column2.Replace(" ", ""));
+            }
+            else
+            {
+                data[column1] = ParseValue(column2);
+            }
+
+
+        }*/
+
+
         Debug.Log("getting planetary data...");
         // use regular expressions to find the number following "Vol. Mean Radius (km) = ", "Vol. mean radius, km = ", or "Radius (km)  = "
         string pattern = @"(Vol\.?\s+mean)?\s+(radius,?\s+\(?km\)?\s*=)\s*(\d+\.?\d*)";
@@ -218,7 +266,7 @@ public class Client : MonoBehaviour
         radius = radius.Trim();
         Debug.Log("radius= " + radius);
 
-        // make a regular expression pattern to find "Mass, 10^n kg = value"  store the value, the exponent, and the units (usually kg, but could be g in the case of Jupiter for example)
+        // regular expression pattern to find "Mass, 10^n kg = value"  store the value, the exponent, and the units (usually kg, but could be g in the case of Jupiter for example)
         pattern = @"(Mass,?\s*x?\s*\(?\s*10\^(-?\d+\.?\d*)?\s+\(?([a-z,1-9,^]+)\s*\)?\s*=)\s*~?(\d+\.?\d*)(\s*\(?\s*10\^(-?\d+)\s*\)?\s*)?\S*?";
 
         string mass = Regex.Match(rawText, pattern, RegexOptions.IgnoreCase).Groups[4].Value;
@@ -409,6 +457,8 @@ public class Client : MonoBehaviour
 
         string centercode = "500@0";  //solar system barycenter will be the coordinate center
         
+
+        //change format to json when I switch to new parsing method
         return ("https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27" + command + "%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&OUT_UNITS=%27AU%27&TABLE_TYPE=%27VECTOR%27&CENTER=%27" + centercode + "%27&START_TIME=%27" + startTime + "%27&STOP_TIME=%27" + endTime + "%27&STEP_SIZE=%27"+ stepSize +"%27&QUANTITIES=%272,9,20,23,24%27&CSV_FORMAT=%27YES%27");
         //return ("https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND=%27499%27&OBJ_DATA=%27YES%27&MAKE_EPHEM=%27YES%27&EPHEM_TYPE=%27VECTOR%27&CENTER=%27500@399%27&START_TIME=%272006-01-01%27&STOP_TIME=%272006-01-20%27&STEP_SIZE=%271%20d%27&QUANTITIES=%271,9,20,23,24,29%27");
     }

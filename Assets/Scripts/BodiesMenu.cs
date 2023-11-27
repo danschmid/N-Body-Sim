@@ -25,8 +25,8 @@ public class BodiesMenu : MonoBehaviour {
     public NB nb;
     public DataManager DataMan = DataManager.Instance;
 
-    public delegate void GetSelectedBodiesEvent();
-    public event GetSelectedBodiesEvent GetSelectedBodies;
+    //public delegate void GetSelectedBodiesEvent();
+    //public event GetSelectedBodiesEvent GetSelectedBodies;
 
     void Awake()
     {

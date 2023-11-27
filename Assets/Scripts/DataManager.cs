@@ -37,7 +37,7 @@ public class DataManager: MonoBehaviour
 
     void Awake()
     {
-        Instance = this;
+        Instance = this;  //calls to DataManager from other scripts will reference this instance, so there is only ever one
         Index = new Dictionary<string, string[]> { };
     }
 
