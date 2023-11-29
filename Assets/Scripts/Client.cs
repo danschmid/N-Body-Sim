@@ -151,7 +151,6 @@ public class Client : MonoBehaviour
         {
             if(line.Trim().Length == 0)  //I guess StringSplitOptions.RemoveEmptyEntries somehow misses some, specifically on the last line.  Is there a better way to do this?
             {
-                //Debug.Log("Empty string!");
                 continue;
             }
             string[] namecode = new string[4];
@@ -171,8 +170,6 @@ public class Client : MonoBehaviour
 
     public IEnumerator ParseEphemeris(string rawText, string pcode)
     {
-        //UnityEngine.Debug.Log("connected. Retrieving " + searchIndex() + "...");
-
         Debug.Log(rawText);
 
         data = new double[] { };
@@ -225,7 +222,6 @@ public class Client : MonoBehaviour
         double[] startv = new double[3] { vx, vy, vz };
 
         DataMan.HorizonsAddBody(pcode, data, startp, startv, fullEphem);
-        //return new double[][] { startp, startv, data };
     }
 
 
@@ -437,17 +433,6 @@ public class Client : MonoBehaviour
         }
         return strSource.Substring(startIndex, endIndex - startIndex);
     }
-
-
-    /*string getID(int indexNum)
-    {
-        return Index[indexNum][1];
-    }
-
-    string getName(int indexNum)
-    {
-        return Index[indexNum][0];
-    }*/
 
     string DoHorizonsURL(string command) //formats the URL to get planetary info from the JPL Horizons web API
     {

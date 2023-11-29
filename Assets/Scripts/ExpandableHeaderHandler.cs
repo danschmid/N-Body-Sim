@@ -8,11 +8,6 @@ public class ExpandableHeaderHandler : MonoBehaviour
     public Canvas expandCanvas;  //should be the expand area that is the child of the header
     public Text buttontext;
     public bool isExpanded = false;
-
-    void Awake()
-    {
-        //expandCanvas = GetComponentInChildren<Canvas>();
-    }
     
     public void EnableCanvas()  //toggles the expansion of the canvas area, and the text of the button
     {

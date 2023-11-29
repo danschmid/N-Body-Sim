@@ -7,18 +7,13 @@ using UnityEngine.UI;
 
 public class ToggleHandler : MonoBehaviour
 {
-   //public BodiesMenu bm;
-    public SidebarUI sb;
     public string BodyID;
-    public int indexNum;
     public Toggle toggle;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        //sb = GameObject.Find("Sidebar Menu").GetComponent<SidebarUI>();
-
         toggle = GetComponent<Toggle>();
         toggle.onValueChanged.AddListener(OnToggle);
     }
