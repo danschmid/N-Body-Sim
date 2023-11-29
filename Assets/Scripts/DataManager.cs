@@ -11,7 +11,7 @@ public class DataManager: MonoBehaviour
 {
     public static DataManager Instance;
 
-    public Dictionary<string, string[]> Index; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
+    public Dictionary<string, string[]> HorizonsIndex; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]].  Should I store this here or in another class?
     public List<string> SelectedBodies;  //contains the Horizons ID# of each body selected from the body selection list.  The body's index in this array will be its index number in all of the data arrays below
 
     public DateTime StartTime { get; private set; }
@@ -35,10 +35,19 @@ public class DataManager: MonoBehaviour
     private int nonamecount;
     public int TotalSteps;
 
+    private void OnEnable()
+    {
+        EventManager.ToggleEvent += SelectionChanged;
+    }
+    private void OnDisable()
+    {
+        EventManager.ToggleEvent -= SelectionChanged;
+    }
+
     void Awake()
     {
         Instance = this;  //calls to DataManager from other scripts will reference this instance, so there is only ever one
-        Index = new Dictionary<string, string[]> { };
+        HorizonsIndex = new Dictionary<string, string[]> { };
     }
 
     // Start is called before the first frame update
@@ -47,6 +56,17 @@ public class DataManager: MonoBehaviour
         nonamecount = 0;
     }
 
+    public void SelectionChanged(bool isOn, string id)
+    {
+        if(isOn)
+        {
+            SelectedBodies.Add(id);
+        }
+        else
+        {
+            SelectedBodies.Remove(id);
+        }
+    }
 
     public void ClearAllData()
     {
@@ -114,17 +134,17 @@ public class DataManager: MonoBehaviour
 
     public string GetBestName(string id) //determines whether to use the primary name, designation, or alias from the index.  If none is found, it gives them one
     {
-        if (!string.IsNullOrEmpty(Index[id][0]))
+        if (!string.IsNullOrEmpty(HorizonsIndex[id][0]))
         {
-            return Index[id][0];
+            return HorizonsIndex[id][0];
         }
-        else if (!string.IsNullOrEmpty(Index[id][1]))
+        else if (!string.IsNullOrEmpty(HorizonsIndex[id][1]))
         {
-            return Index[id][1];
+            return HorizonsIndex[id][1];
         }
-        else if (!string.IsNullOrEmpty(Index[id][2]))
+        else if (!string.IsNullOrEmpty(HorizonsIndex[id][2]))
         {
-            return Index[id][2];
+            return HorizonsIndex[id][2];
         }
         else
         {

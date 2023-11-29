@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ExpandButtonHandler : MonoBehaviour
+public class ExpandableHeaderHandler : MonoBehaviour
 {
-    public Canvas expandCanvas;
+    public Canvas expandCanvas;  //should be the expand area that is the child of the header
     public Text buttontext;
     public bool isExpanded = false;
+
+    void Awake()
+    {
+        //expandCanvas = GetComponentInChildren<Canvas>();
+    }
     
-    public void EnableCanvas()  //toggles the expansion of the canvas area, and the text of the button. The canvas area must be a sibling of the expandable header, below it in hierarchy
+    public void EnableCanvas()  //toggles the expansion of the canvas area, and the text of the button
     {
         if(isExpanded)
         {

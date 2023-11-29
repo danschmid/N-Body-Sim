@@ -47,33 +47,34 @@ public class Client : MonoBehaviour
 
     public Dictionary<string, string[]> GetIndex()
     {
-        Debug.Log("Index length: " + DataMan.Index.Count);
-        return DataMan.Index;
+        Debug.Log("Index length: " + DataMan.HorizonsIndex.Count);
+        return DataMan.HorizonsIndex;
     }
     
 
     public IEnumerator UpdateSelectedBodyData()
     {
-        PlanetCodes = sidebarUI.GetSelectedIDs();
+        PlanetCodes = DataMan.SelectedBodies;
 
-        if(PlanetCodes == null)
+        if(PlanetCodes.Count == 0)
         {
             Debug.LogWarning("Please select some bodies to simulate from the data tab, or input a custom body.");
             yield break;
         }
         
         DataMan.InitializeDataLists(DataMan.SelectedBodies.Count());
-        DataMan.SelectedBodies = PlanetCodes;
+        //DataMan.SelectedBodies = PlanetCodes;
+
         DateTime now = DateTime.Now;
         TimeSpan step = new TimeSpan(0, 0, 0, 1080, 0);
         DataMan.InitializeSimulationSettings(now, now.AddYears(1), step);
         
-        /*string result = "PlanetCodes contents: ";
+        string result = "PlanetCodes contents: ";
         foreach (var item in PlanetCodes)
         {
             result += item.ToString() + ", ";
         }
-        Debug.Log(result);*/
+        Debug.Log(result);
 
         for (int c = 0; c < PlanetCodes.Count()-1; c++)
         {
@@ -161,7 +162,7 @@ public class Client : MonoBehaviour
             
 
             
-            DataMan.Index.Add(namecode[0], new string[3] { namecode[1], namecode[2], namecode[3] }); //Horizons ID#, [Name, Designation, IAU/Aliases/other]
+            DataMan.HorizonsIndex.Add(namecode[0], new string[3] { namecode[1], namecode[2], namecode[3] }); //Horizons ID#, [Name, Designation, IAU/Aliases/other]
         }
 
         //sidebarUI.UpdateBodySelectionList(); moved to only update when data tab is opened

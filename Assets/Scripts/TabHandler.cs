@@ -10,11 +10,11 @@ public class TabHandler : MonoBehaviour
     public GameObject page;  //have to manually set a reference to the page you want the tab to control
     
     private bool needsLoaded = false;  //most pages won't need it, bodyselection page will
-    private SidebarUI sidebarUI; 
+    public SidebarUI sidebarUI; 
 
     void Awake()  //awake so that it is called on initialization even if the script is disabled
     {
-        sidebarUI = GameObject.Find("Sidebar Menu").GetComponent<SidebarUI>();
+        //sidebarUI = GameObject.Find("Sidebar Menu").GetComponent<SidebarUI>();
 
         if (page.name == "pg2 - ObjectDataSel") //only page2 needs this for refreshing selection.   
         {

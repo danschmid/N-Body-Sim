@@ -11,6 +11,7 @@ public class SidebarUI : MonoBehaviour
     public Client client;
     public DataManager DataMan = DataManager.Instance;
     public TabHandler tabhandler;
+    public ToggleHandler togglehandler;
 
     Dictionary<string, string[]> index;
     public List<bool> ToggleStates;
@@ -25,9 +26,14 @@ public class SidebarUI : MonoBehaviour
     public GameObject page3;
     public GameObject page4;
 
+
+
     public List<string> GetSelectedIDs()
     {
+        Debug.Log("getting selections...");
         int itr = 0;
+
+
         foreach (bool boo in ToggleStates)
         {
             if (boo == true)
@@ -43,15 +49,17 @@ public class SidebarUI : MonoBehaviour
         }
 
         return DataMan.SelectedBodies;
-    }
+    }  //this is old now
 
     void Start()
     {
+
+        //togglehandler.ToggledEvent += UpdateSelected;
     }
     
     public void UpdateBodySelectionList()  //gets the celestial bodies available on Horizons from Client.Index, and populates the body selection list in the sidebar
     {
-        index = DataMan.Index; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
+        index = DataMan.HorizonsIndex; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
         Dictionary<string, List<string>> sortedIndex = new Dictionary<string, List<string>> {}; //[first char of ID#, [all horizons ID#s with that first char]]   this helps to sort the major planetary bodies and their satellites for populating the list
         int indexlength = index.Count;
 
@@ -103,17 +111,17 @@ public class SidebarUI : MonoBehaviour
         int toggleCount = 0;
         foreach (KeyValuePair<string, List<string>> system in sortedIndex)
         {
-            //GameObject expandHeader = null;
-            GameObject expandArea = null;
+            Canvas expandArea = null;
+            GameObject expandHeader = null;
             GameObject toggle = null;
 
-            if (system.Key == "-")
+            if (system.Key == "-")  //Horizons IDs that start with a "-" are always spacecraft (Pretty sure anyways)
             {
-                expandArea = InstantiateHeader("Spacecraft");
+                expandHeader = InstantiateHeader("Spacecraft", out expandArea);
 
                 foreach (string id in system.Value)
                 {
-                    toggle = InstantiateToggle(DataMan.GetBestName(id), expandArea);
+                    toggle = InstantiateToggle(id, expandArea);
                     ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
                     toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
                     //Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
@@ -125,23 +133,23 @@ public class SidebarUI : MonoBehaviour
             }
             else
             {
-                string bestName = DataMan.GetBestName(system.Value[0]);
-                ToggleNames.Add(system.Value[0]);
-                toggle = InstantiateToggle(bestName, null, true);
-                ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
+                //string bestName = DataMan.GetBestName(system.Value[0]);
+                ToggleNames.Add(system.Value[0]);  //will we still need togglenames?
+                toggle = InstantiateToggle(system.Value[0], null);
+
+                //ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);  //don't think we want togglestates anymore
                 toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
                 //Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
                 toggleCount++;
 
-                if (system.Value.Count > 1)
+                if (system.Value.Count > 1)  //If there is more than one body in the system values list then the main body has satellites.  Put them in an expandable header under main body
                 {
-                    expandArea = InstantiateHeader(bestName + " Satellites:");
+                    expandHeader = InstantiateHeader(DataMan.GetBestName(system.Value[0]) + " Satellites:", out expandArea);
 
-                    List<string> values = system.Value;
-                    values.RemoveAt(0);
-                    foreach (string id in values)
+                    for (int i=1; i<system.Value.Count; i++)
                     {
-                        toggle = InstantiateToggle(DataMan.GetBestName(id), expandArea);
+                        string id = system.Value[i];
+                        toggle = InstantiateToggle(id, expandArea);
                         ToggleStates.Add(toggle.GetComponent<Toggle>().isOn);
                         toggle.GetComponent<ToggleHandler>().indexNum = toggleCount;
                         //Debug.Log("indexnum: " + toggle.GetComponent<ToggleHandler>().indexNum);
@@ -155,36 +163,36 @@ public class SidebarUI : MonoBehaviour
         //Debug.Log("Toggles Length: " + ToggleStates.Count + ", Index Length: " + sortedIndex.Count());
     }
 
-    GameObject InstantiateHeader(string name)
+    GameObject InstantiateHeader(string name, out Canvas ExpandArea)  //returns the header itself, as well as the expandable area which it controls (where the content will go)
     {
         GameObject expandHeader = Instantiate(ExpandHeaderPrefab, page2.transform);
-        expandHeader.transform.SetParent(page2.transform);
+        //expandHeader.transform.SetParent(page2.transform);  //is this necessary if we set the parent when we instantiate?
 
         Transform horizontalElements = expandHeader.transform.Find("Horizontal Elements");
         Text headerText = horizontalElements.GetComponentInChildren<Text>();
         headerText.text = name;
 
-        GameObject expandArea = Instantiate(ExpandAreaPrefab, page2.transform);
-        expandArea.transform.SetParent(page2.transform);
+        //GameObject expandArea = Instantiate(ExpandAreaPrefab, page2.transform);
+        //expandArea.transform.SetParent(page2.transform);
 
-        ExpandButtonHandler buttonHandler = horizontalElements.GetComponentInChildren<ExpandButtonHandler>();
-        buttonHandler.expandCanvas = expandArea.GetComponent<Canvas>();
-
-        return expandArea;
+        ExpandableHeaderHandler buttonHandler = expandHeader.GetComponent<ExpandableHeaderHandler>();
+        ExpandArea = buttonHandler.expandCanvas;
+        return expandHeader;
     }
 
-    GameObject InstantiateToggle(string name, GameObject parent = null, bool startOn = false)
+    GameObject InstantiateToggle(string id, Canvas parent = null, bool startOn = false)
     {
         if (parent == null)
         {
             //Debug.Log("parent set to default");
-            parent = page2;
+            parent = page2.GetComponent<Canvas>();
         }
         GameObject toggle = Instantiate(TogglePrefab, parent.transform);
-        toggle.transform.SetParent(parent.transform);
+        //toggle.transform.SetParent(parent.transform);
 
         Text toggleText = toggle.GetComponentInChildren<Text>();
-        toggleText.text = name;
+        toggleText.text = DataMan.GetBestName(id);  //sets the name of the toggle
+        toggle.GetComponent<ToggleHandler>().BodyID = id;  //also set the id variable in ToggleHandler
         if(startOn)
         {
             toggle.GetComponent<Toggle>().isOn = true;
