@@ -11,7 +11,7 @@ public class SidebarUI : MonoBehaviour
     public Client client;
     public DataManager DataMan = DataManager.Instance;
     public TabHandler tabhandler;
-    public ToggleHandler togglehandler;
+    public BodyToggleHandler togglehandler;
 
     Dictionary<string, string[]> index;
 
@@ -132,7 +132,7 @@ public class SidebarUI : MonoBehaviour
 
         Text toggleText = toggle.GetComponentInChildren<Text>();
         toggleText.text = DataMan.GetBestName(id);  //sets the name of the toggle
-        toggle.GetComponent<ToggleHandler>().BodyID = id;  //also set the id variable in ToggleHandler
+        toggle.GetComponent<BodyToggleHandler>().BodyID = id;  //also set the id variable in ToggleHandler
         if(startOn)
         {
             toggle.GetComponent<Toggle>().isOn = true;
