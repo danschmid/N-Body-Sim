@@ -11,7 +11,7 @@ public class SidebarUI : MonoBehaviour
     public Client client;
     public DataManager DataMan = DataManager.Instance;
     public TabHandler tabhandler;
-    public BodyToggleHandler togglehandler;
+    public ToggleHandler togglehandler;
 
     Dictionary<string, string[]> index;
 
@@ -23,6 +23,8 @@ public class SidebarUI : MonoBehaviour
     public GameObject page2;
     public GameObject page3;
     public GameObject page4;
+
+    public bool firstLoad = false;
     
     public void UpdateBodySelectionList()  //gets the celestial bodies available on Horizons from Client.Index, and populates the body selection list in the sidebar
     {
@@ -108,6 +110,15 @@ public class SidebarUI : MonoBehaviour
         }
     }
 
+    
+    public void PopulateSelectionList(RectTransform scrollArea)  //Populates the selection list of the simulation tab with the bodies you have selected from the data tab.  (TODO: also add custom bodies to this list)
+    {
+        foreach (string name in DataMan.PreferredNames)
+        {
+            GameObject text = InstantiateText(name, scrollArea);
+        }
+    }
+
     GameObject InstantiateHeader(string name, out Canvas ExpandArea)  //returns the header itself, as well as the expandable area which it controls (where the content will go)
     {
         GameObject expandHeader = Instantiate(ExpandHeaderPrefab, page2.transform);
@@ -132,12 +143,29 @@ public class SidebarUI : MonoBehaviour
 
         Text toggleText = toggle.GetComponentInChildren<Text>();
         toggleText.text = DataMan.GetBestName(id);  //sets the name of the toggle
-        toggle.GetComponent<BodyToggleHandler>().BodyID = id;  //also set the id variable in ToggleHandler
+        toggle.GetComponent<ToggleHandler>().ID = id;  //also set the id variable in ToggleHandler
         if(startOn)
         {
             toggle.GetComponent<Toggle>().isOn = true;
         }
 
         return toggle;
+    }
+
+    GameObject InstantiateText(string text, RectTransform parent)
+    {
+        GameObject newTextObject = new GameObject("DynamicText");
+        Text newTextComponent = newTextObject.AddComponent<Text>();
+
+        // Set text properties
+        newTextComponent.text = text;
+        newTextComponent.font = Resources.GetBuiltinResource<Font>("Arial.ttf"); // Use the built-in Arial font or replace it with your custom font
+
+        RectTransform rectTransform = newTextObject.GetComponent<RectTransform>();
+        rectTransform.SetParent(parent); // Set the parent to a scroll area
+        rectTransform.localPosition = Vector3.zero;
+        rectTransform.sizeDelta = new Vector2(200f, 50f);
+
+        return newTextObject;
     }
 }

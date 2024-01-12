@@ -35,19 +35,16 @@ public class DataManager: MonoBehaviour
     private int nonamecount;
     public int TotalSteps;
 
-    private void OnEnable()
+    public void Awake()
     {
-        EventManager.ToggleEvent += SelectionChanged;
-    }
-    private void OnDisable()
-    {
-        EventManager.ToggleEvent -= SelectionChanged;
-    }
-
-    void Awake()
-    {
-        Instance = this;  //calls to DataManager from other scripts will reference this instance, so there is only ever one
+        Instance = this;  //calls to DataManager from other scripts will reference this instance, so there is only ever one at a time
         HorizonsIndex = new Dictionary<string, string[]> { };
+
+        EventManager.events.ToggleEvent += SelectionChanged;
+    }
+    public void OnDestroy()
+    {
+        EventManager.events.ToggleEvent -= SelectionChanged;
     }
 
     // Start is called before the first frame update
@@ -56,16 +53,25 @@ public class DataManager: MonoBehaviour
         nonamecount = 0;
     }
 
-    public void SelectionChanged(bool isOn, string id)
+    public void SelectionChanged(bool isOn, ToggleHandler toggleHandler)  //I should move this to SidebarUI and have it call methods here to change the values
     {
-        if(isOn)
+        if(toggleHandler.ID != null)  //this means it is a body selection toggle
         {
-            SelectedBodies.Add(id);
+            string id = toggleHandler.ID;
+            if (isOn)
+            {
+                SelectedBodies.Add(id);
+            }
+            else
+            {
+                SelectedBodies.Remove(id);
+            }
         }
-        else
+        else if(toggleHandler.Setting != null)  //this is a toggle for a generic setting (simulation, display, etc)
         {
-            SelectedBodies.Remove(id);
+
         }
+        
     }
 
     public void ClearAllData()

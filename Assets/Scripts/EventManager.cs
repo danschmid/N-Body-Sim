@@ -5,10 +5,33 @@ using System;
 
 public class EventManager : MonoBehaviour
 {
-    public static Action<bool, string> ToggleEvent;
-
-    public static void RaiseToggleEvent(bool isToggled, string id)
+    public static EventManager events;
+    public void Awake()
     {
-        ToggleEvent?.Invoke(isToggled, id);
+        events = this;
     }
+
+
+    public Action<bool, ToggleHandler> ToggleEvent;
+    public void RaiseToggleEvent(bool isToggled, ToggleHandler th)
+    {
+        if (ToggleEvent != null)  //This basically ensures that an instance of DataManager exists (although I might move it to SidebarUI) 
+        {
+            ToggleEvent(isToggled, th);
+        }
+        else
+        {
+            //TODO: If no instance exists I should not allow it to stay toggled, as it may lead to a mismatch between the toggle state and the actual setting
+        }
+    }
+
+    public Action<bool, ToggleHandler> StartSimulation;
+    public void RaiseStartSimulationEvent()
+    {
+
+    }
+
+    
+
+
 }

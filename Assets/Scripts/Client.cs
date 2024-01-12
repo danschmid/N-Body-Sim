@@ -98,9 +98,9 @@ public class Client : MonoBehaviour
         Debug.Log(DataMan.InitialPositions.Count() + ", " + DataMan.InitialVelocities.Count() + ", " + DataMan.SelectedBodies.Count());
          */
 
-        Debug.Log("Starting simulation...");
+        /*Debug.Log("Starting simulation...");
         nb.nBody(DataMan.Masses, DataMan.InitialPositions, DataMan.InitialVelocities, DataMan.Duration, (int)DataMan.TimeStep.TotalSeconds); //1000 or lower needed for high accuracy (generally any more than the 9 main planets+ the sun is too much for stepsize more than 1000)
-        UnityEngine.Debug.Log("Simulation Complete");
+        UnityEngine.Debug.Log("Simulation Complete");*/  
 
         /*Debug.Log("FinalPositions Size: " + DataMan.FinalPositions.Count() + " - " + DataMan.FinalPositions[0].Count() + " - " + DataMan.FinalPositions[0][0].Count() +
             ", FullEphemerides size: " + DataMan.FullEphemerides.Count() + " - " + DataMan.FullEphemerides[0].Count() + " - " + DataMan.FullEphemerides[0][0].Count());*/

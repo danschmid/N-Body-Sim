@@ -11,7 +11,22 @@ using UnityEngine.Profiling;
 public class NB : MonoBehaviour {
     public DataManager DataMan = DataManager.Instance;
 
-
+    public void StartSimulation()
+    {
+        int timestep = (int)DataMan.TimeStep.TotalSeconds;  //move this to dataman?
+        if (DataMan.Duration == 0 || timestep == 0)
+        {
+            Debug.LogWarning("Simulation duration and timestep must be greater than zero");  //This isn't a very critical error since the user may have just forgotten to enter them, but the simulation can't run w/o them
+            return;
+        }
+        if (DataMan.Masses.Length != DataMan.InitialPositions.Length || DataMan.Masses.Length != DataMan.InitialVelocities.Length)
+        {
+            Debug.LogError("Mistmatch in number of planets between the mass list and initial conditions!");  //if this happens something is seriously wrong with data parsing, each list should have the same number of bodies
+        }
+        //if the parameters make sense, we can start the simulation
+        nBody(DataMan.Masses, DataMan.InitialPositions, DataMan.InitialVelocities, DataMan.Duration, (int)DataMan.TimeStep.TotalSeconds); //seems like 1000 or lower needed for high accuracy but it will be much slower
+    }
+        
     private double forceMagnitude(double mi, double mj, double separation)
     {
         /*
@@ -47,7 +62,7 @@ public class NB : MonoBehaviour {
 
 
     private double Magnitude(double[] vec)  //Can probably replace this with vector.magnitude if switched back to floats.  Or create a custom class for vectors of doubles, with this method as a part of it.
-                                            //Does the SIMD intrinsic Vector<T> allow doubles?
+                                            //Does the SIMD intrinsic Vector<T> allow doubles?   I think it might depending on hardware
     {
         /*
         Compute magnitude of any vector with an arbitrary number of elements.
