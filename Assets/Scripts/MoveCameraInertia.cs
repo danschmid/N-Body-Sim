@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections;
-
+using UnityEngine.EventSystems;
 
 public class MoveCameraInertia : MonoBehaviour 
 {
@@ -22,6 +22,10 @@ public class MoveCameraInertia : MonoBehaviour
 
     void Update()
     {
+        if(EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
         {
             mouseOrigin = Input.mousePosition;
