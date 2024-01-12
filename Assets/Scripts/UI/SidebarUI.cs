@@ -10,8 +10,6 @@ public class SidebarUI : MonoBehaviour
 {
     public Client client;
     public DataManager DataMan = DataManager.Instance;
-    public TabHandler tabhandler;
-    public ToggleHandler togglehandler;
 
     Dictionary<string, string[]> index;
 
@@ -115,6 +113,7 @@ public class SidebarUI : MonoBehaviour
     {
         foreach (string name in DataMan.PreferredNames)
         {
+
             GameObject text = InstantiateText(name, scrollArea);
         }
     }
@@ -160,11 +159,13 @@ public class SidebarUI : MonoBehaviour
         // Set text properties
         newTextComponent.text = text;
         newTextComponent.font = Resources.GetBuiltinResource<Font>("Arial.ttf"); // Use the built-in Arial font or replace it with your custom font
+        newTextComponent.color = Color.black;
 
         RectTransform rectTransform = newTextObject.GetComponent<RectTransform>();
-        rectTransform.SetParent(parent); // Set the parent to a scroll area
-        rectTransform.localPosition = Vector3.zero;
-        rectTransform.sizeDelta = new Vector2(200f, 50f);
+        rectTransform.sizeDelta = new Vector2(170f, 20f);
+        rectTransform.SetParent(parent, false); // Set the parent to a scroll area
+        //rectTransform.localPosition = Vector3.zero;
+
 
         return newTextObject;
     }
