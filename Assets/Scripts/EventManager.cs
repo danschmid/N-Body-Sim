@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.UI;
 
 public class EventManager : MonoBehaviour
 {
@@ -25,8 +26,21 @@ public class EventManager : MonoBehaviour
         }
     }
 
-    public Action<bool, ToggleHandler> StartSimulation;
+    public Action<ToggleHandler> StartSimulation;
     public void RaiseStartSimulationEvent()
+    {
+
+    }
+
+    public Action<string, string> InputEvent;
+    public void RaiseInputEvent(string input, string fieldName)
+    {
+        Debug.Log("InputEvent");
+        InputEvent(input, fieldName);
+    }
+
+    public Action<string> ButtonEvent;
+    public void RaiseButtonEvent(string type)
     {
 
     }

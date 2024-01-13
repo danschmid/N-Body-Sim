@@ -16,6 +16,7 @@ public class SidebarUI : MonoBehaviour
     public GameObject TogglePrefab;
     public GameObject ExpandHeaderPrefab;
     public GameObject ExpandAreaPrefab;
+    public GameObject ButtonPrefab;
 
     public GameObject page1;
     public GameObject page2;
@@ -111,11 +112,26 @@ public class SidebarUI : MonoBehaviour
     
     public void PopulateSelectionList(RectTransform scrollArea)  //Populates the selection list of the simulation tab with the bodies you have selected from the data tab.  (TODO: also add custom bodies to this list)
     {
-        foreach (string name in DataMan.PreferredNames)
+        try
         {
-
-            GameObject text = InstantiateText(name, scrollArea);
+            foreach (Transform child in scrollArea)
+            {
+                Destroy(child.gameObject);
+            }
+            foreach (string name in DataMan.PreferredNames)
+            {
+                if(name != null)
+                {
+                    GameObject text = InstantiateButton(name, scrollArea);
+                }
+            }
         }
+        catch { }
+    }
+
+    public void SetStartTimeParameter()
+    {
+
     }
 
     GameObject InstantiateHeader(string name, out Canvas ExpandArea)  //returns the header itself, as well as the expandable area which it controls (where the content will go)
@@ -156,6 +172,7 @@ public class SidebarUI : MonoBehaviour
         GameObject newTextObject = new GameObject("DynamicText");
         Text newTextComponent = newTextObject.AddComponent<Text>();
 
+
         // Set text properties
         newTextComponent.text = text;
         newTextComponent.font = Resources.GetBuiltinResource<Font>("Arial.ttf"); // Use the built-in Arial font or replace it with your custom font
@@ -168,5 +185,17 @@ public class SidebarUI : MonoBehaviour
 
 
         return newTextObject;
+    }
+
+    GameObject InstantiateButton(string name, RectTransform parent)
+    {
+        GameObject button = Instantiate(ButtonPrefab, parent.transform);
+        button.GetComponentInChildren<Text>().text = name;
+
+        RectTransform rectTransform = button.GetComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(170f, 20f);
+
+
+        return button;
     }
 }

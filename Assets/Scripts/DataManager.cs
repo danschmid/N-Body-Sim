@@ -6,10 +6,12 @@ using UnityEngine;
 using System.IO;
 using System.Diagnostics.Tracing;
 using System.Linq;
+using System.Globalization;
 
 public class DataManager: MonoBehaviour
 {
     public static DataManager Instance;
+    public NB nb;
 
     public Dictionary<string, string[]> HorizonsIndex; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]].  Should I store this here or in another class?
     public List<string> SelectedBodies;  //contains the Horizons ID# of each body selected from the body selection list.  The body's index in this array will be its index number in all of the data arrays below
@@ -41,16 +43,68 @@ public class DataManager: MonoBehaviour
         HorizonsIndex = new Dictionary<string, string[]> { };
 
         EventManager.events.ToggleEvent += SelectionChanged;
+        EventManager.events.InputEvent += InputChanged;
     }
     public void OnDestroy()
     {
         EventManager.events.ToggleEvent -= SelectionChanged;
+        EventManager.events.InputEvent -= InputChanged;
     }
 
     // Start is called before the first frame update
     void Start()
     {
         nonamecount = 0;
+    }
+
+    public void StartSim()
+    {
+        nb.StartSimulation();
+    }
+
+    public void InputChanged(string input, string fieldName)
+    {
+        string[] formats = {"mm/dd/yyyy HH':'mm':'ss" };
+        if (fieldName == "StartTime")
+        {
+            DateTime dateValue;
+            if (DateTime.TryParse(input, out dateValue))
+            {
+                Debug.Log(dateValue);
+                StartTime = dateValue;
+            }
+            else
+            {
+                Debug.LogWarning("Please Enter a Valid Start Time and Date!");
+            }
+        }
+        else if (fieldName == "EndTime")
+        {
+            DateTime dateValue;
+            if (DateTime.TryParseExact(input, @"MM/DD/YYYY':' HH':'mm':'ss", new CultureInfo("en-us"), DateTimeStyles.None, out dateValue))
+            {
+                Debug.Log(dateValue);
+                EndTime = dateValue;
+            }
+            else
+            {
+                Debug.LogWarning("Please Enter a Valid End Time and Date!");
+            }
+        }
+        else if (fieldName == "StepSize")
+        {
+            Debug.Log("timespan");
+            TimeSpan timespan;
+            if (System.TimeSpan.TryParse(input, out timespan))
+            {
+                Debug.Log(timespan);
+                TimeStep = timespan;
+            }
+            else
+            {
+                Debug.LogWarning("Please Enter a Valid Span of Time With Units! (eg. 1h, 60m, or 3600s");
+            }
+        }
     }
 
     public void SelectionChanged(bool isOn, ToggleHandler toggleHandler)  //I should move this to SidebarUI and have it call methods here to change the values
@@ -89,6 +143,7 @@ public class DataManager: MonoBehaviour
 
     public void InitializeSimulationSettings(DateTime iTime, DateTime fTime, TimeSpan step)
     {
+        //can comment these out again later
         StartTime = iTime;
         EndTime = fTime;
         TimeStep = step;

@@ -37,16 +37,16 @@ public class CameraFollow : MonoBehaviour {
                     Debug.Log("Switching to main camera");
                     followingObject = false;
                     followTarget = null;
-                    SwitchCurrentCamera();
+                    SwitchToMainCamera();
                 }
                 else
                 {
                     // Clicked on a new object, switch to follow camera
                     Debug.Log("Switching to follow camera");
                     followTarget = hit.transform;
-                    SwitchCurrentCamera();
+                    SwitchToFollowCamera();
                     Vector3 targetPosition = followTarget.position;
-                    followCam.transform.position = new Vector3(transform.position.x, transform.position.y, targetPosition.z - 200);
+                    followCam.transform.position = new Vector3(targetPosition.x, targetPosition.y, targetPosition.z - 200);
                     followingObject = true;
                 }
             }
@@ -60,7 +60,7 @@ public class CameraFollow : MonoBehaviour {
             followCam.transform.position = Vector3.Lerp(followCam.transform.position, targetPosition, followSpeed * Time.deltaTime);
         }
 
-        if(IsActive)  //control object selection and camera switching from the editor
+        /*if(IsActive)  //control object selection and camera switching from the editor
         {
             if (followingObject)
             {
@@ -82,25 +82,21 @@ public class CameraFollow : MonoBehaviour {
             }
 
             IsActive = false;
-        }
+        }*/
     }
 
-
-    private void SwitchCurrentCamera()
+    private void SwitchToMainCamera()
     {
-        if (followCam.enabled == true)
-        {
-            Debug.Log("setting current camera to disabled and IsActive to " + !IsActive);
-            followCam.enabled = false;
-            mainCam.enabled = true;
-            currentCam = mainCam;
-        }
-        else
-        {
-            Debug.Log("enabling follow camera...");
-            followCam.enabled = true;
-            mainCam.enabled = false;
-            currentCam = followCam;
-        }
+        Debug.Log("setting current camera to disabled and IsActive to " + !IsActive);
+        followCam.enabled = false;
+        mainCam.enabled = true;
+        currentCam = mainCam;
+    }
+    private void SwitchToFollowCamera()
+    {
+        Debug.Log("enabling follow camera...");
+        followCam.enabled = true;
+        mainCam.enabled = false;
+        currentCam = followCam;
     }
 }

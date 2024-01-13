@@ -25,6 +25,7 @@ public class NB : MonoBehaviour {
         }
         //if the parameters make sense, we can start the simulation
         nBody(DataMan.Masses, DataMan.InitialPositions, DataMan.InitialVelocities, DataMan.Duration, (int)DataMan.TimeStep.TotalSeconds); //seems like 1000 or lower needed for high accuracy but it will be much slower
+        Debug.Log("Simulation Complete");
     }
         
     private double forceMagnitude(double mi, double mj, double separation)

@@ -19,10 +19,21 @@ public class Orbit : MonoBehaviour {
     public DataManager DataMan = DataManager.Instance;
 
     public float DistanceScale = 250;
+	public float SizeScale = 1;
+	List<Vector3> defaultscales = new List<Vector3> { };
 
 
 	public void startSim()
 	{
+        foreach (string planet in DataMan.PreferredNames)
+        {
+            if (GameObject.Find(planet) != null)
+            {
+                GameObject objPlanet = GameObject.Find(planet); //find the planet object
+                defaultscales.Add(objPlanet.transform.localScale);
+            }
+        }
+
         if (getCurr==true) 
 		{
             //getCurrent();  Can't do this here and in bodiesmenu, or it will get called twice
@@ -42,9 +53,22 @@ public class Orbit : MonoBehaviour {
 	{
         DistanceScale = value;
     }
-	
 
-	public void stopSim()
+    public void UpdateSizeScale(float value)
+    {
+        SizeScale = value;
+
+		for (int i=0; i<DataMan.PreferredNames.Length; i++)
+		{
+			string planet = DataMan.PreferredNames[i];
+			Debug.Log(planet);
+            GameObject objPlanet = GameObject.Find(planet);
+            objPlanet.transform.localScale = new Vector3(defaultscales[i].x * SizeScale, defaultscales[i].y * SizeScale, defaultscales[i].z * SizeScale);
+        }
+    }
+
+
+    public void stopSim()
     {
 		ready=false;
 		//pos = new List<float>();
@@ -76,7 +100,7 @@ public class Orbit : MonoBehaviour {
 		if(ready==true)
 		{
             //UnityEngine.Debug.Log(planets.Count + " bodies");
-            foreach (string pl in DataMan.SelectedBodies)
+            foreach (string pl in DataMan.SelectedBodies)  //replace this with preferrednames
 
             {
 				movePlanets(DataMan.GetBestName(pl));
@@ -115,7 +139,7 @@ public class Orbit : MonoBehaviour {
 				go.AddComponent<HelloWorld>();
 				go.name = p;
 				objPlanet = go;
-				float f = (float)0.1;
+				float f = (float)1;
 				objPlanet.transform.localScale = new Vector3(f, f, f);
 				objPlanet.transform.position = new Vector3(pos[itr] * DistanceScale, pos[itr + 1] * DistanceScale, pos[itr + 2] * DistanceScale);
 
@@ -145,8 +169,9 @@ public class Orbit : MonoBehaviour {
 			poss = new Vector3(pos[pitr] * DistanceScale, pos[pitr + 1] * DistanceScale, pos[pitr + 2] * DistanceScale);
 			//UnityEngine.Debug.Log(p + ": " + pos[pitr]*250 + " " + pos[pitr+1] * 250 + " " + pos[pitr+2] * 250);
 			UnityEngine.Debug.Log("Moving " + p + " to: " + poss.x + ", " + poss.y + ", " + poss.z);
-			objPlanet.transform.position = poss; //Vector3.MoveTowards(objPlanet.transform.position, poss, step);
-		}
+			objPlanet.transform.position = poss; //Vector3.MoveTowards(objPlanet.transform.position, poss, step
+
+        }
 	}
 
 	

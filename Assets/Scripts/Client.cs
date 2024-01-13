@@ -67,8 +67,8 @@ public class Client : MonoBehaviour
 
         DateTime now = DateTime.Now;
         TimeSpan step = new TimeSpan(0, 0, 0, 1080, 0);
-        DataMan.InitializeSimulationSettings(now, now.AddYears(1), step);
-        
+        DataMan.InitializeSimulationSettings(now, now.AddYears(1), step); //
+
         string result = "PlanetCodes contents: ";
         foreach (var item in PlanetCodes)
         {
