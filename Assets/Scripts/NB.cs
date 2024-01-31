@@ -13,6 +13,12 @@ public class NB : MonoBehaviour {
 
     public void StartSimulation()
     {
+        if(!DataMan.VerifyDataLists())
+        {
+            Debug.LogWarning("Missing required data.  Please fill out missing parameters and try again.");
+            return;
+        }
+
         int timestep = (int)DataMan.TimeStep.TotalSeconds;  //move this to dataman?
         if (DataMan.Duration == 0 || timestep == 0)
         {

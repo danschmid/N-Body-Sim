@@ -189,6 +189,32 @@ public class DataManager: MonoBehaviour
         FullEphemerides = new double[numberOfBodies][][];
     }
 
+    public bool VerifyDataLists()
+    {
+        Array[] arrays = new Array[] {PreferredNames, InitialPositions, InitialVelocities, Masses, Radii, FullEphemerides};
+        for (int i = 1; i < arrays.Length; i++)
+        {
+            if (arrays[i].GetLength(0) != arrays[i - 1].GetLength(0))
+            {
+                Debug.Log("Data Lists count mismatch!");
+                return false;
+            }
+        }
+        foreach (Array arr in arrays)
+        {
+            foreach (var value in arr)
+            {
+                if (value == null)
+                {
+                    Debug.Log("Missing data required for simulation");
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
 
     public void HorizonsAddBody(string planetCode, double[] data, double[] iPos, double[] iVel, double[][] fullEphemeris = null)
     {

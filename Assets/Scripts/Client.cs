@@ -183,7 +183,7 @@ public class Client : MonoBehaviour
 
 
         string ephemeris = GetBetween(rawText, "$$SOE", "$$EOE"); //ephermeris is the data for the planet's position and velocity vectors
-        if (ephemeris == null)
+        if (ephemeris == null || ephemeris == "")
         {
             Debug.LogError("Ephemeris not found");
             yield break;
@@ -196,8 +196,11 @@ public class Client : MonoBehaviour
         
         double[][] fullEphem = new double[DataMan.TotalSteps][];  //shape is [TotalSteps][position at step]
         //int bodyIndex = DataMan.SelectedBodies.IndexOf(pcode);  //get the index number to specify what planet this is
-        for (int line = 0; line <= coordinates.Length; line++)
+        for (int line = 0; line < coordinates.Length; line++)
         {
+            Debug.Log("line: " + line);
+
+
             if (line >= DataMan.TotalSteps)
             {
                 Debug.Log("DataMan.fullEphem is full! line number " + line);
@@ -422,6 +425,12 @@ public class Client : MonoBehaviour
                 inputField.text = "";
                 inputField.interactable = false;
                 inputField.gameObject.SetActive(false);
+
+                double Finput;
+                if(double.TryParse(userInput, out Finput))
+                {
+                    DataMan.Masses[DataMan.SelectedBodies.IndexOf(pcode)] = Finput;
+                }
             }
             yield return null;
         }
