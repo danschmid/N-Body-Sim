@@ -54,6 +54,8 @@ public class Client : MonoBehaviour
 
     public IEnumerator UpdateSelectedBodyData()
     {
+        EventManager.events.LockoutWhileLoading();
+
         PlanetCodes = DataMan.SelectedBodies;
 
         if(PlanetCodes.Count == 0)
@@ -84,6 +86,9 @@ public class Client : MonoBehaviour
         }
         string lastPlanet = PlanetCodes[PlanetCodes.Count()-1];
         yield return StartCoroutine(WebRequestText(DoHorizonsURL(lastPlanet), lastPlanet, false)); //wait for last request to process before trying to simulate
+
+
+        EventManager.events.UnlockAfterLoading();
 
 
 

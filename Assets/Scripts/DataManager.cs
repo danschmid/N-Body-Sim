@@ -14,29 +14,41 @@ public class DataManager: MonoBehaviour
     public EventManager Events = EventManager.events;
     public NB nb;
 
-    public Dictionary<string, string[]> HorizonsIndex; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]].  Should I store this here or in another class?
-    public List<string> SelectedBodies;  //contains the Horizons ID# of each body selected from the body selection list.  The body's index in this array will be its index number in all of the data arrays below
+    public Dictionary<string, string[]> HorizonsIndex; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]  retrives the horizons index when the program starts to provide names of bodies to select from
+
+    public List<string> SelectedBodies;  //contains the Horizons ID# of each body selected for simulation from the body selection list.  The body's index in this array should be the same in all of the arrays below
 
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public int Duration { get; private set; }  //total time between start and end, in seconds
     public TimeSpan TimeStep { get; private set; }   //time step between each position, in seconds.  Should probably be something TotalTime is divisible by, or I should find a way to fix it if there isn't a good number of steps
 
-    public string[] PreferredNames;  //names for each body, in the same order as SelectedBodies.  best name chosen by GetBestName()
+    
+    
+    public string[] PreferredNames;  //names for each body, in the same order as SelectedBodies. Probably don't need to keep a list of these, could just get them when needed
+
+    //these are for initial conditions
     public double[][] InitialPositions;  //initial positions for each body, stored as double[].  The double[] for each body is stored at the same index in the outer array as SelectedBodies
     public double[][] InitialVelocities; //initial velocities for each body, stored as double[]
     public double[] Masses;
     public double[] Radii;
 
+    //These store what is calculated from the simulation
     public double[][][] FinalPositions;
     public double[][][] FinalVelocities;
     public double[] Times;
 
+    //this stores full results from Horizons for comparing to
     public double[][][] FullEphemerides;
+
 
     public int BodyCount;
     private int nonamecount;
     public int TotalSteps;
+
+
+
+
 
     public void Awake()
     {
@@ -110,7 +122,6 @@ public class DataManager: MonoBehaviour
 
     public void SelectionChanged(bool isOn, ToggleHandler toggleHandler)  //I should move this to SidebarUI and have it call methods here to change the values
     {
-        Debug.Log("Selection changed");
         if(toggleHandler.ID != null)  //this means it is a body selection toggle
         {
             string id = toggleHandler.ID;

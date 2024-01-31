@@ -16,7 +16,6 @@ public class EventManager : MonoBehaviour
     public Action<bool, ToggleHandler> ToggleEvent;
     public void RaiseToggleEvent(bool isToggled, ToggleHandler th)
     {
-        Debug.Log("Toggle event raised");
         if (ToggleEvent != null)  //This basically ensures that an instance of DataManager exists (although I might move it to SidebarUI) 
         {
             ToggleEvent(isToggled, th);
@@ -37,7 +36,6 @@ public class EventManager : MonoBehaviour
     public Action<string, string> InputEvent;
     public void RaiseInputEvent(string input, string fieldName)
     {
-        Debug.Log("InputEvent");
         InputEvent(input, fieldName);
     }
 
@@ -47,7 +45,18 @@ public class EventManager : MonoBehaviour
 
     }
 
-    
+    public Action LockoutEvent;
+    public void LockoutWhileLoading()
+    {
+        LockoutEvent();
+    }
+    public Action UnlockEvent;
+    public void UnlockAfterLoading()
+    {
+        UnlockEvent();
+    }
+
+
 
 
 }
