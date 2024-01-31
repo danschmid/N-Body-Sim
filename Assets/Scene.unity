@@ -2645,7 +2645,7 @@ MonoBehaviour:
   getCurr: 1
   client: {fileID: 760834635}
   nb: {fileID: 760834637}
-  sb: {fileID: 0}
+  sb: {fileID: 237369235}
   DataMan: {fileID: 760834638}
   DistanceScale: 250
   SizeScale: 1
@@ -2674,6 +2674,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 668d059f36bc2f141a9bee2e7bb38f01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Events: {fileID: 760834639}
   nb: {fileID: 760834637}
   SelectedBodies: []
   PreferredNames: []

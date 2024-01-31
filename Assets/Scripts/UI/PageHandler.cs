@@ -12,6 +12,10 @@ public class PageHandler : MonoBehaviour
     public RectTransform scrollrect;
     void OnEnable()
     {
+    }
+
+    public void PopulateBodySelectionList()
+    {
         sidebarUI.PopulateSelectionList(scrollrect);
     }
 }

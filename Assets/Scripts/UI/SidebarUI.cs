@@ -25,7 +25,7 @@ public class SidebarUI : MonoBehaviour
 
     public bool firstLoad = false;
     
-    public void UpdateBodySelectionList()  //gets the celestial bodies available on Horizons from Client.Index, and populates the body selection list in the sidebar
+    public void UpdateBodySelectionList()  //gets the celestial bodies available on Horizons from Client.Index, and populates the body selection list in the data tab
     {
         index = DataMan.HorizonsIndex; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
         Dictionary<string, List<string>> sortedIndex = new Dictionary<string, List<string>> {}; //[first char of ID#, [all horizons ID#s with that first char]]
@@ -69,7 +69,7 @@ public class SidebarUI : MonoBehaviour
                 }
                 else
                 {
-                    sortedIndex[firstChar].Add(body.Key); //In the sorted index, the first element for each key will be the major planet, and any more will be its satellites.  if firstChar is "-" (their ID is negative) then it is a spacecraft.
+                    sortedIndex[firstChar].Add(body.Key); //In the sorted index, the first element for each key will be the major planet
                 }
             }
 
@@ -81,7 +81,7 @@ public class SidebarUI : MonoBehaviour
             GameObject expandHeader = null;
             GameObject toggle = null;
 
-            if (system.Key == "-")  //Horizons IDs that start with a "-" are always spacecraft (Pretty sure anyways)
+            if (system.Key == "-")  //Horizons IDs that start with a "-" are always spacecraft
             {
                 expandHeader = InstantiateHeader("Spacecraft", out expandArea);
 
@@ -118,21 +118,27 @@ public class SidebarUI : MonoBehaviour
             {
                 Destroy(child.gameObject);
             }
-            foreach (string name in DataMan.PreferredNames)
+            foreach (string id in DataMan.SelectedBodies)
             {
-                if(name != null)
+                if(id != null)
                 {
+                    string name = DataMan.GetBestName(id);
                     GameObject text = InstantiateButton(name, scrollArea);
                 }
             }
         }
-        catch { }
+        catch {
+            Debug.LogWarning("Something went wrong when populating the selections list");
+        }
     }
 
-    public void SetStartTimeParameter()
+    public void SetStartTime()
     {
 
     }
+
+
+
 
     GameObject InstantiateHeader(string name, out Canvas ExpandArea)  //returns the header itself, as well as the expandable area which it controls (where the content will go)
     {

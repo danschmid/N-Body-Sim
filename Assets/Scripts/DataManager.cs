@@ -11,6 +11,7 @@ using System.Globalization;
 public class DataManager: MonoBehaviour
 {
     public static DataManager Instance;
+    public EventManager Events = EventManager.events;
     public NB nb;
 
     public Dictionary<string, string[]> HorizonsIndex; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]].  Should I store this here or in another class?
@@ -42,13 +43,13 @@ public class DataManager: MonoBehaviour
         Instance = this;  //calls to DataManager from other scripts will reference this instance, so there is only ever one at a time
         HorizonsIndex = new Dictionary<string, string[]> { };
 
-        EventManager.events.ToggleEvent += SelectionChanged;
-        EventManager.events.InputEvent += InputChanged;
+        Events.ToggleEvent += SelectionChanged;
+        Events.InputEvent += InputChanged;
     }
     public void OnDestroy()
     {
-        EventManager.events.ToggleEvent -= SelectionChanged;
-        EventManager.events.InputEvent -= InputChanged;
+        Events.ToggleEvent -= SelectionChanged;
+        Events.InputEvent -= InputChanged;
     }
 
     // Start is called before the first frame update
@@ -109,6 +110,7 @@ public class DataManager: MonoBehaviour
 
     public void SelectionChanged(bool isOn, ToggleHandler toggleHandler)  //I should move this to SidebarUI and have it call methods here to change the values
     {
+        Debug.Log("Selection changed");
         if(toggleHandler.ID != null)  //this means it is a body selection toggle
         {
             string id = toggleHandler.ID;
