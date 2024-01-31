@@ -20,7 +20,7 @@ public class TabHandler : MonoBehaviour
         }
     }
 
-    private void OnClick()
+    public void OnClick()
     {
         //if any other tabs in the group are active, deactivate them
         foreach (Button tab in transform.parent.GetComponentsInChildren<Button>())
