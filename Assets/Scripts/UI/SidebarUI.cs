@@ -24,7 +24,7 @@ public class SidebarUI : MonoBehaviour
     public GameObject page4;
 
     public bool firstLoad = false;
-    
+
     public void UpdateBodySelectionList()  //gets the celestial bodies available on Horizons from Client.Index, and populates the body selection list in the data tab
     {
         index = DataMan.HorizonsIndex; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]

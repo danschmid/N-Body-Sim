@@ -13,7 +13,7 @@ public class NB : MonoBehaviour {
 
     public void StartSimulation()
     {
-        if(!DataMan.VerifyDataLists())
+        if(!DataMan.VerifyData())
         {
             Debug.LogWarning("Missing required data.  Please fill out missing parameters and try again.");
             return;

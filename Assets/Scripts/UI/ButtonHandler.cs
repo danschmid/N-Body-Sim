@@ -14,6 +14,7 @@ public class ButtonHandler : MonoBehaviour
         Events.LockoutEvent += LockoutButton;
         Events.UnlockEvent += UnlockButton;
         button = GetComponent<Button>();
+        button.interactable = false;
     }
     public void OnDestroy()
     {

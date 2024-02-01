@@ -189,14 +189,14 @@ public class DataManager: MonoBehaviour
         FullEphemerides = new double[numberOfBodies][][];
     }
 
-    public bool VerifyDataLists()
+    public bool VerifyData()
     {
         Array[] arrays = new Array[] {PreferredNames, InitialPositions, InitialVelocities, Masses, Radii, FullEphemerides};
         for (int i = 1; i < arrays.Length; i++)
         {
             if (arrays[i].GetLength(0) != arrays[i - 1].GetLength(0))
             {
-                Debug.Log("Data Lists count mismatch!");
+                Debug.LogWarning("Data Lists count mismatch!");
                 return false;
             }
         }
@@ -206,10 +206,14 @@ public class DataManager: MonoBehaviour
             {
                 if (value == null)
                 {
-                    Debug.Log("Missing data required for simulation");
+                    Debug.LogWarning("Missing data required for simulation");
                     return false;
                 }
             }
+        }
+        if(Duration == 0 || TimeStep == null)
+        {
+            Debug.LogWarning("Missing simulation parameters");
         }
 
         return true;
