@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using System.IO;
-using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Globalization;
 
@@ -77,11 +74,28 @@ public class DataManager: MonoBehaviour
 
     public void InputChanged(string input, string fieldName)
     {
-        string[] formats = {"mm/dd/yyyy HH':'mm':'ss" };
+        Debug.Log(DateTime.Now);
+        //foreach(string s in DateTime.Now.GetDateTimeFormats())
+        //{
+            //Debug.Log(s);
+       // }
+
+        Debug.Log(System.Threading.Thread.CurrentThread.CurrentCulture);
+        string[] formats = { "MM/dd/yyyy HH:mm:ss", "MM/dd/yyyy':' HH:mm:ss", "M/d/yyyy HH:mm", "MM/dd/yyyy", "HH:mm:ss MM/dd/yyyy", "HH:mm:ss" };
         if (fieldName == "StartTime")
         {
             DateTime dateValue;
-            if (DateTime.TryParse(input, out dateValue))
+            try
+            {
+                DateTime parsedData = DateTime.ParseExact(input, DateTime.Now.GetDateTimeFormats(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                Debug.Log(parsedData);
+            }
+            catch (FormatException ex)
+            {
+                Debug.LogError("Parsing error: " + ex.Message);
+            }
+             
+            if (DateTime.TryParseExact(input, DateTime.Now.GetDateTimeFormats(), CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue))
             {
                 Debug.Log(dateValue);
                 StartTime = dateValue;
@@ -263,7 +277,7 @@ public class DataManager: MonoBehaviour
         var path = Application.dataPath + "/fPos.txt";
         using (StreamWriter writetext = new StreamWriter(path, false))
         {
-            int itr = 0;
+            //int itr = 0;
             //UnityEngine.Debug.Log("Writing to fPos" + position.Count());
             for(int body = 0; body < FinalPositions.Count(); body++)
             {
@@ -282,7 +296,7 @@ public class DataManager: MonoBehaviour
         path = Application.dataPath + "/Ephemerides.txt";
         using (StreamWriter writetext = new StreamWriter(path, false))
         {
-            int itr = 0;
+            //int itr = 0;
             //UnityEngine.Debug.Log("Writing to fPos" + position.Count());
             for (int body = 0; body < FullEphemerides.Count(); body++)
             {

@@ -2,12 +2,10 @@
 using System;
 using System.Collections;
 using UnityEngine.Networking;
-using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine.UI;
-using System.Runtime;
 //using Newtonsoft.Json;
 //using UnityEngine.Modules.Jsonserialize;
 public class Client : MonoBehaviour
