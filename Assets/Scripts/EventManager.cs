@@ -31,10 +31,25 @@ public class EventManager : MonoBehaviour
     }
 
     public Action<string, string> InputEvent;
+    public Action<DateTime, DateTimeInputHandler.InputType> DateTimeInputEvent;
     public void RaiseInputEvent(string input, string fieldName)
     {
         InputEvent(input, fieldName);
     }
+    public void RaiseInputEvent(DateTime input, DateTimeInputHandler.InputType inputType)
+    {
+        DateTimeInputEvent(input, inputType);
+    } 
+    
+
+
+    public Action<DateTime, DateTimeInputHandler.InputType> DateTimeChangedEvent;
+    public void RaiseDateTimeChangedEvent(DateTime dateTime, DateTimeInputHandler.InputType inputType)
+    {
+        DateTimeChangedEvent(dateTime, inputType);
+    }
+
+
 
     public Action<string> ButtonEvent;
     public void RaiseButtonEvent(string type)

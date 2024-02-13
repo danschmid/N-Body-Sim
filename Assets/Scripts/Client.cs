@@ -22,8 +22,6 @@ public class Client : MonoBehaviour
     public string today;
     public string tomorrow;
 
-    public NB nb;
-    public SidebarUI sidebarUI;
     public DataManager DataMan = DataManager.Instance;
 
     public InputField inputField;
@@ -166,8 +164,6 @@ public class Client : MonoBehaviour
             
             DataMan.HorizonsIndex.Add(namecode[0], new string[3] { namecode[1], namecode[2], namecode[3] }); //Horizons ID#, [Name, Designation, IAU/Aliases/other]
         }
-
-        //sidebarUI.UpdateBodySelectionList(); moved to only update when data tab is opened
     }
 
 
@@ -350,7 +346,7 @@ public class Client : MonoBehaviour
             double dGM;
             if(double.TryParse(GM, out dGM))
             {
-                dmass = CalculateMass(dGM);
+                dmass = CalculateMassFromGM(dGM);
                 UnityEngine.Debug.Log("mass= " + dmass.ToString());
             }
             else
@@ -401,7 +397,7 @@ public class Client : MonoBehaviour
         data = new double[] {dmass, dradius};
     }
 
-    public double CalculateMass(double GM)
+    public double CalculateMassFromGM(double GM)
     {
         double G = 6.67430e-21; // gravitational constant, converted from usual units: 10^-11 m^3*kg^-1*s^-2 to 10^-21 km^3*kg^-1*s^-2, so that the resulting mass will be in kg
         return (GM / G);

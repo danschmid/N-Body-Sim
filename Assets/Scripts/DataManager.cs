@@ -54,11 +54,13 @@ public class DataManager: MonoBehaviour
 
         Events.ToggleEvent += SelectionChanged;
         Events.InputEvent += InputChanged;
+        Events.DateTimeInputEvent += DateTimeChanged;
     }
     public void OnDestroy()
     {
         Events.ToggleEvent -= SelectionChanged;
         Events.InputEvent -= InputChanged;
+        Events.DateTimeInputEvent -= DateTimeChanged;
     }
 
     // Start is called before the first frame update
@@ -72,17 +74,42 @@ public class DataManager: MonoBehaviour
         nb.StartSimulation();
     }
 
+    public void DateTimeChanged(DateTime dateTime, DateTimeInputHandler.InputType inputType)
+    {
+        DateTime newDateTime;
+        switch(inputType)
+        {
+            case DateTimeInputHandler.InputType.StartDate:
+                StartTime = dateTime.Date.Add(StartTime.TimeOfDay);
+                Events.RaiseDateTimeChangedEvent(StartTime, inputType);
+                Debug.Log("StartTime: " + StartTime.ToString());
+                break;
+
+            case DateTimeInputHandler.InputType.EndDate:
+                EndTime = dateTime.Date.Add(EndTime.TimeOfDay);
+                Events.RaiseDateTimeChangedEvent(EndTime, inputType);
+                Debug.Log("EndTime: " + EndTime.ToString());
+                break;
+
+            case DateTimeInputHandler.InputType.StartTime:
+                StartTime = StartTime.Date.Add(dateTime.TimeOfDay);
+                Events.RaiseDateTimeChangedEvent(StartTime, inputType);
+                Debug.Log("StartTime: " + StartTime.ToString());
+                break;
+
+            case DateTimeInputHandler.InputType.EndTime:
+                EndTime = EndTime.Date.Add(dateTime.TimeOfDay);
+                Events.RaiseDateTimeChangedEvent(EndTime, inputType);
+                Debug.Log("EndTime: " + EndTime.ToString());
+                break;
+        }
+    }
+
     public void InputChanged(string input, string fieldName)
     {
-        Debug.Log(DateTime.Now);
-        //foreach(string s in DateTime.Now.GetDateTimeFormats())
-        //{
-            //Debug.Log(s);
-       // }
-
-        Debug.Log(System.Threading.Thread.CurrentThread.CurrentCulture);
+        //Debug.Log(System.Threading.Thread.CurrentThread.CurrentCulture);
         string[] formats = { "MM/dd/yyyy HH:mm:ss", "MM/dd/yyyy':' HH:mm:ss", "M/d/yyyy HH:mm", "MM/dd/yyyy", "HH:mm:ss MM/dd/yyyy", "HH:mm:ss" };
-        if (fieldName == "StartTime")
+        /*if (fieldName == "StartTime")
         {
             DateTime dateValue;
             try
@@ -108,7 +135,7 @@ public class DataManager: MonoBehaviour
         else if (fieldName == "EndTime")
         {
             DateTime dateValue;
-            if (DateTime.TryParseExact(input, @"MM/DD/YYYY':' HH':'mm':'ss", new CultureInfo("en-us"), DateTimeStyles.None, out dateValue))
+            if (DateTime.TryParseExact(input, formats, new CultureInfo("en-us"), DateTimeStyles.None, out dateValue))
             {
                 Debug.Log(dateValue);
                 EndTime = dateValue;
@@ -117,14 +144,13 @@ public class DataManager: MonoBehaviour
             {
                 Debug.LogWarning("Please Enter a Valid End Time and Date!");
             }
-        }
-        else if (fieldName == "StepSize")
+        }*/
+
+        if (fieldName == "StepSize")
         {
-            Debug.Log("timespan");
             TimeSpan timespan;
             if (System.TimeSpan.TryParse(input, out timespan))
             {
-                Debug.Log(timespan);
                 TimeStep = timespan;
             }
             else
