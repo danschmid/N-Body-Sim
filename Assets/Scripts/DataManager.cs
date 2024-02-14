@@ -18,7 +18,7 @@ public class DataManager: MonoBehaviour
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public int Duration { get; private set; }  //total time between start and end, in seconds
-    [SerializeField] public TimeSpan TimeStep { get; private set; }   //time step between each position, in seconds.  Should probably be something TotalTime is divisible by, or I should find a way to fix it if there isn't a good number of steps
+    [SerializeField] public TimeSpan TimeStep { get; private set; }   //time step between each position, in seconds.  Should probably be something TotalTime is divisible by?  nb now cuts off when totalsteps is exceeded so shouldn't be necessary anymore
 
     
     
@@ -50,14 +50,17 @@ public class DataManager: MonoBehaviour
 
     public void Awake()
     {
-        Instance = this;  //calls to DataManager from other scripts will reference this instance, so there is only ever one at a time
+        Instance = this;  //calls to DataManager from other scripts will reference this instance, so there is only ever one at a time.  Is it safe for this to be in awake? (awake is called in random order)
         HorizonsIndex = new Dictionary<string, string[]> { };
+    }
 
+    public void OnEnable()  //should these be onenable/ondisable?  or will dataman never be disabled in which case Start and OnDestroy might be better
+    {
         Events.ToggleEvent += ChangeToggleParameter;
         Events.InputEvent += ChangeInputParameter;
         Events.DateTimeInputEvent += ChangeDateTimeParameter;
     }
-    public void OnDestroy()
+    public void OnDisable()
     {
         Events.ToggleEvent -= ChangeToggleParameter;
         Events.InputEvent -= ChangeInputParameter;
@@ -69,8 +72,7 @@ public class DataManager: MonoBehaviour
     {
         nonamecount = 0;
         DateTime now = DateTime.Now;
-        TimeSpan step = new TimeSpan(0, 0, 0, 1080, 0);
-        InitializeSimulationSettings(now, now.AddYears(1), step);
+        InitializeSimulationSettings(now, now.AddYears(1), new TimeSpan(0, 0, 0, 1080));
     }
 
     public void StartSim()
@@ -83,30 +85,29 @@ public class DataManager: MonoBehaviour
 
     public void ChangeDateTimeParameter( DateTime dateTime, DateTimeInputHandler.InputType inputType)
     {
-        DateTime newDateTime;
         switch(inputType)
         {
             case DateTimeInputHandler.InputType.StartDate:
                 StartTime = dateTime.Date.Add(StartTime.TimeOfDay);
-                Events.RaiseDateTimeChangedEvent(StartTime, inputType);
+                Events.RaiseDateTimeChangedEvent(StartTime, inputType, true);
                 //Debug.Log("StartTime: " + StartTime.ToString());
                 break;
 
             case DateTimeInputHandler.InputType.EndDate:
                 EndTime = dateTime.Date.Add(EndTime.TimeOfDay);
-                Events.RaiseDateTimeChangedEvent(EndTime, inputType);
+                Events.RaiseDateTimeChangedEvent(EndTime, inputType, false);
                 //Debug.Log("EndTime: " + EndTime.ToString());
                 break;
 
             case DateTimeInputHandler.InputType.StartTime:
                 StartTime = StartTime.Date.Add(dateTime.TimeOfDay);
-                Events.RaiseDateTimeChangedEvent(StartTime, inputType);
+                Events.RaiseDateTimeChangedEvent(StartTime, inputType, true);
                 //Debug.Log("StartTime: " + StartTime.ToString());
                 break;
 
             case DateTimeInputHandler.InputType.EndTime:
                 EndTime = EndTime.Date.Add(dateTime.TimeOfDay);
-                Events.RaiseDateTimeChangedEvent(EndTime, inputType);
+                Events.RaiseDateTimeChangedEvent(EndTime, inputType, false);
                 //Debug.Log("EndTime: " + EndTime.ToString());
                 break;
 

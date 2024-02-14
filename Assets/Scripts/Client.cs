@@ -138,7 +138,7 @@ public class Client : MonoBehaviour
     {
         DataMan.ClearAllData();
 
-        Debug.Log("getting list...");
+        Debug.Log("got index: ");
         Debug.Log(rawText);
 
         rawText = rawText.Substring(rawText.IndexOf("0")); //remove header

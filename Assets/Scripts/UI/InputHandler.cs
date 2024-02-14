@@ -46,7 +46,7 @@ public class InputHandler : MonoBehaviour
 
     public void SetInput(string input, InputHandler.InputType type)
     {
-        Debug.Log("Setting input")
+        //Debug.Log("Setting input")
 ;        if(inputType == type)
         {
             inputField.text = input;

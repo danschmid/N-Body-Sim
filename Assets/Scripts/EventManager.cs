@@ -48,11 +48,26 @@ public class EventManager : MonoBehaviour
 
 
 
-    public Action<DateTime, DateTimeInputHandler.InputType> DateTimeChangedEvent;
-    public void RaiseDateTimeChangedEvent(DateTime dateTime, DateTimeInputHandler.InputType inputType)
+    public Action<DateTime, DateTimeInputHandler.InputType> StartDateTimeChangedEvent;
+    public Action<DateTime, DateTimeInputHandler.InputType> EndDateTimeChangedEvent;
+    public void RaiseDateTimeChangedEvent(DateTime dateTime, DateTimeInputHandler.InputType inputType, bool? start)
     {
-        DateTimeChangedEvent(dateTime, inputType);
+        if ((bool)start)
+        {
+            StartDateTimeChangedEvent(dateTime, inputType);
+        }
+        else if(!(bool)start)
+        {
+            EndDateTimeChangedEvent(dateTime, inputType);
+        }
+        else if(start == null)
+        {
+            //do something for generic DateTime changes here
+        }
+
     }
+
+
 
     public Action<string, InputHandler.InputType> InputChangedEvent;
     public void RaiseInputChangedEvent(string input, InputHandler.InputType inputType)

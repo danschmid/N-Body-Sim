@@ -9,14 +9,14 @@ using UnityEngine.UIElements;
 
 public class DateTimeInputHandler : MonoBehaviour
 {
-    [SerializeField] private InputField[] inputFields;
     public EventManager Events = EventManager.events;
 
     [SerializeField] private bool PreciseTime = false; //adds a milliseconds field to time input fields
-    [SerializeField] private InputType FieldType;
+    [SerializeField] public InputType inputType;
 
     private int CurrentValue;
     DateTimeInputHandler[] siblings;
+    [SerializeField] private IncrementalInputHandler[] IncrementalInputHandlers;
 
     public enum InputType
     {
@@ -26,52 +26,61 @@ public class DateTimeInputHandler : MonoBehaviour
         EndTime
     }
 
-
+    public void Awake()
+    {
+        IncrementalInputHandlers = GetComponentsInChildren<IncrementalInputHandler>();
+    }
     public void Start()
     {
-        inputFields = GetComponentsInChildren<InputField>();
-
-        Events.DateTimeChangedEvent += SetInput;
-        foreach(InputField inputField in inputFields)
+        if(inputType == InputType.StartTime || inputType == InputType.StartDate)
         {
-            inputField.onEndEdit.AddListener(InputValueChanged);
+            Events.StartDateTimeChangedEvent += SetFields;
         }
+        else if (inputType == InputType.EndTime || inputType == InputType.EndDate)
+        {
+            Events.EndDateTimeChangedEvent += SetFields;
+        }
+
+
+        foreach (IncrementalInputHandler iih in IncrementalInputHandlers)
+        {
+            iih.inputField.onEndEdit.AddListener(InputValueChanged);
+        }
+        
+    }
+
+    public void OnDestroy()
+    {
+        Events.StartDateTimeChangedEvent -= SetFields;
+        Events.EndDateTimeChangedEvent -= SetFields;
     }
 
 
-    private void SetInput(DateTime value, InputType inputType)  //called when DataManager's date/time parameters are modified to reflect any unexpected changes from parsing or external changes in the user input
+    private void SetFields(DateTime value, InputType setInputType)  //called when DataManager's date/time parameters are modified to reflect any unexpected changes from parsing or external changes in the user input
     {
-        bool startDateTime = (inputType == InputType.StartTime || inputType == InputType.StartDate);  //if not startDateTime, it is an end date/time
+        bool thisIsDate = (inputType == InputType.StartDate || inputType == InputType.EndDate); //if this field isn't for dates then it is for times, fill the fields with the appropriate parts of the DateTime accordingly
 
-        if ((this.FieldType == InputType.StartTime && startDateTime) || (this.FieldType == InputType.EndTime && !startDateTime))
+        if (thisIsDate)
         {
-            inputFields[0].text = value.Hour.ToString();
-            inputFields[0].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Hour.ToString());  //lots of getcomponent can probably be avoided, but it works for now.  
-                                                                                                            //CheckValidInput just needed to properly format string, but it can't hurt to check that the parsed output is still valid
-            inputFields[1].text = value.Minute.ToString();
-            inputFields[1].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Minute.ToString());
+            IncrementalInputHandlers[0].SetText(value.Month.ToString());
 
-            inputFields[2].text = value.Second.ToString();
-            inputFields[2].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Second.ToString());
+            IncrementalInputHandlers[1].SetText(value.Day.ToString());
 
-            if (PreciseTime && inputFields[3] != null)
+            IncrementalInputHandlers[2].SetText(value.Year.ToString());
+        }
+        else if (!thisIsDate)
+        {
+            IncrementalInputHandlers[0].SetText(value.Hour.ToString());
+
+            IncrementalInputHandlers[1].SetText(value.Minute.ToString());
+
+            IncrementalInputHandlers[2].SetText(value.Second.ToString());
+
+            if (PreciseTime && IncrementalInputHandlers[3] != null)
             {
-                inputFields[3].text = value.Millisecond.ToString();
-                inputFields[3].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Millisecond.ToString());
-
+                IncrementalInputHandlers[3].SetText(value.Millisecond.ToString());
             }
 
-        }
-        else if ((this.FieldType == InputType.StartDate && startDateTime) || (this.FieldType == InputType.EndDate && !startDateTime))
-        {
-            inputFields[0].text = value.Month.ToString();
-            inputFields[0].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Month.ToString());
-             
-            inputFields[1].text = value.Day.ToString();
-            inputFields[1].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Day.ToString());
-
-            inputFields[2].text = value.Year.ToString();
-            inputFields[2].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Year.ToString());
         }
 
         //don't call inputvalue changed. we have to set values and do the checks without triggering the InputEvent again, as that could cause a loop
@@ -86,7 +95,7 @@ public class DateTimeInputHandler : MonoBehaviour
         DateTime? dateTime;
         if (text != "" && CheckFieldsAndCombine(out dateTime) && dateTime != null)
         {
-            EventManager.events.RaiseInputEvent((DateTime)dateTime, this.FieldType);
+            EventManager.events.RaiseInputEvent((DateTime)dateTime, this.inputType);
         }
     }
 
@@ -95,13 +104,10 @@ public class DateTimeInputHandler : MonoBehaviour
     {
         bool valid = true;
         result = null;
-        IncrementalInputHandler[] IIHs = new IncrementalInputHandler[] {null, null, null, null};
 
-        for(int i=0; i<inputFields.Count(); i++)
+        for(int i=0; i<IncrementalInputHandlers.Count(); i++)
         {
-            IIHs[i] = inputFields[i].GetComponent<IncrementalInputHandler>();
-
-            if (!IIHs[i].CheckValidInput(inputFields[i].text))  //probably don't need to check them again here since the incrementalinputfields handle that themselves
+            if (!IncrementalInputHandlers[i].CheckValidInput(IncrementalInputHandlers[i].inputField.text))  //probably don't need to check them again here since the incrementalinputfields handle that themselves
             {
                 valid = false;
             }
@@ -109,23 +115,22 @@ public class DateTimeInputHandler : MonoBehaviour
 
         if(valid)
         {
-            if (this.FieldType == InputType.StartDate || this.FieldType == InputType.EndDate)
+            if (this.inputType == InputType.StartDate || this.inputType == InputType.EndDate)
             {
                 //Debug.Log("date: " + IIHs[0].CurrentValue + ", " + IIHs[1].CurrentValue + ", " + IIHs[2].CurrentValue);
-                result = new DateTime(IIHs[2].CurrentValue, IIHs[0].CurrentValue, IIHs[1].CurrentValue);
+                result = new DateTime(IncrementalInputHandlers[2].CurrentValue, IncrementalInputHandlers[0].CurrentValue, IncrementalInputHandlers[1].CurrentValue);
                 //Debug.Log("result: " + result);
             }
-            else if (this.FieldType == InputType.StartTime || this.FieldType == InputType.EndTime)
+            else if (this.inputType == InputType.StartTime || this.inputType == InputType.EndTime)
             {
-                if(PreciseTime && inputFields[3] != null)
+                if(PreciseTime && IncrementalInputHandlers[3] != null)
                 {
-                    result = new DateTime(1, 1, 1, IIHs[0].CurrentValue, IIHs[1].CurrentValue, IIHs[2].CurrentValue, IIHs[3].CurrentValue);
+                    result = new DateTime(1, 1, 1, IncrementalInputHandlers[0].CurrentValue, IncrementalInputHandlers[1].CurrentValue, IncrementalInputHandlers[2].CurrentValue, IncrementalInputHandlers[3].CurrentValue);
                 }
                 else
                 {
-                    result = new DateTime(1, 1, 1, IIHs[0].CurrentValue, IIHs[1].CurrentValue, IIHs[2].CurrentValue);
+                    result = new DateTime(1, 1, 1, IncrementalInputHandlers[0].CurrentValue, IncrementalInputHandlers[1].CurrentValue, IncrementalInputHandlers[2].CurrentValue);
                 }
-
             }
         }
 

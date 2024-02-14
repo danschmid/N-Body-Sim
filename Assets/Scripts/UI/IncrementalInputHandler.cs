@@ -7,14 +7,14 @@ using UnityEngine.UIElements;
 
 public class IncrementalInputHandler : MonoBehaviour
 {
-    [SerializeField] private InputField inputField;
+    [SerializeField] public InputField inputField { get; private set; }
 
     [SerializeField] private int minValue=-1;  //if it is equal to -1, there is no enforced min or max value.  Because of this, this input field cannot handle negatives
     [SerializeField] private int maxValue=-1;  //even when set to -1, maximum value will still be limited by the InputFields character limit 
 
     public int CurrentValue;
     private DateTimeInputHandler parent;
-    [SerializeField] private InputType inputType;
+    [SerializeField] public InputType inputType;
 
     public enum InputType
     {
@@ -22,10 +22,13 @@ public class IncrementalInputHandler : MonoBehaviour
         integer
     }
     
-    public void Start()
+    public void Awake()  //Awake is called before start
     {
         parent = GetComponentInParent<DateTimeInputHandler>();
         inputField = this.GetComponent<InputField>();
+    }
+    public void Start()
+    {
         inputField.onEndEdit.AddListener(InputValueChanged); 
         if(minValue < -1)
         {
@@ -45,10 +48,12 @@ public class IncrementalInputHandler : MonoBehaviour
             int? output = 0;
             if(CheckValidInput(text, out output) && inputType == InputType.integer && output != null) //if it is InputType.dateTime, then it should have a DateTimeInputHandler that will listen for changes to its children and handle them
             {
-                EventManager.events.RaiseInputEvent((int)output, inputType);
+                CurrentValue = (int)output;
+                EventManager.events.RaiseInputEvent(CurrentValue, inputType);
             }
             else if (CheckValidInput(text, out output) && inputType == InputType.dateTime)
             {
+                CurrentValue = (int)output;
                 parent.InputValueChanged(text);
             }
         }
@@ -58,7 +63,20 @@ public class IncrementalInputHandler : MonoBehaviour
         }
     }
 
-    //this method only gets used if the InputField has up/down toggle buttons as children to call it
+
+    public void SetText(string text)
+    {
+        if (text.Length <= inputField.characterLimit)
+        {
+            inputField.text = text;
+            CheckValidInput(text);
+        }
+        else
+        {
+            Debug.LogWarning("Warning! Unable to set input text, it might no longer represent the true value");
+        }
+    }
+
     public void IncrementDecrement(bool decrement)  //check if the field contains a number. If so, either increment or decrement the number by 1, depending on whether up or down button was pressed.
     {
         int add = 1;
@@ -89,12 +107,15 @@ public class IncrementalInputHandler : MonoBehaviour
     }
 
 
-    public bool CheckValidInput(string input, out int? output, bool emptyIsHighlighted = true)
+    public bool CheckValidInput(string input, out int? output, bool emptyIsHighlighted = true)  //Check valid input must run AFTER a field's text has been set, so it can format it by adding leading zeros, etc...
     {
-        if (int.TryParse(inputField.text, out CurrentValue))
+        //Debug.Log("Check string " + input);
+        int value;
+        if (int.TryParse(input, out value))
         {
-            output = CurrentValue;
-            if ((minValue != -1 && CurrentValue < minValue) || (maxValue != -1 && CurrentValue > maxValue))  //if it exceeds minimum or maximum values it is invalid
+            //Debug.Log("Parsed int output: " + CurrentValue);
+            output = value;
+            if ((minValue != -1 && value < minValue) || (maxValue != -1 && value > maxValue))  //if it exceeds minimum or maximum values it is invalid
             {
                 Debug.Log("Invalid input! Exceeds maximum or minimum values");
                 inputField.image.color = Color.red;
@@ -112,6 +133,7 @@ public class IncrementalInputHandler : MonoBehaviour
         }
         else  //invalid input, highlight the field red
         {
+            //Debug.Log("Could not parse int");
             output = null;
             if(!emptyIsHighlighted)
             {
@@ -124,11 +146,14 @@ public class IncrementalInputHandler : MonoBehaviour
     }
     public bool CheckValidInput(string input, bool emptyIsHighlighted = true)
     {
-        if (int.TryParse(inputField.text, out CurrentValue))
+        input = input.Trim();
+        //Debug.Log("Checking if " + input + " is valid...");
+        if (int.TryParse(input, out CurrentValue))
         {
+            //Debug.Log("Parse successful: " + CurrentValue);
             if ((minValue != -1 && CurrentValue < minValue) || (maxValue != -1 && CurrentValue > maxValue))  //if it exceeds minimum or maximum values it is invalid
             {
-                Debug.Log("Invalid input! Exceeds maximum or minimum values");
+                //Debug.Log("Invalid input! Exceeds maximum or minimum values");
                 inputField.image.color = Color.red;
                 return false;
             }
@@ -144,11 +169,12 @@ public class IncrementalInputHandler : MonoBehaviour
         }
         else  //invalid input, highlight the field red
         {
+            //Debug.Log("Parse failed!");
             if (!emptyIsHighlighted)
             {
                 return false; //not valid, but don't color it red
             }
-            Debug.Log("Invalid input! Please enter a valid number");
+            //Debug.Log("Invalid input! Please enter a valid number");
             inputField.image.color = Color.red;
             return false;
         }
