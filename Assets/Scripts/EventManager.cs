@@ -30,23 +30,34 @@ public class EventManager : MonoBehaviour
 
     }
 
-    public Action<string, string> InputEvent;
+    public Action<string, InputHandler.InputType> InputEvent;
+    public Action<float, IncrementalInputHandler.InputType> NumInputEvent;
     public Action<DateTime, DateTimeInputHandler.InputType> DateTimeInputEvent;
-    public void RaiseInputEvent(string input, string fieldName)
+    public void RaiseInputEvent(string input, InputHandler.InputType inputType)
     {
-        InputEvent(input, fieldName);
+        InputEvent(input, inputType);
     }
     public void RaiseInputEvent(DateTime input, DateTimeInputHandler.InputType inputType)
     {
         DateTimeInputEvent(input, inputType);
-    } 
-    
+    }
+    public void RaiseInputEvent(float input, IncrementalInputHandler.InputType inputType)
+    {
+        NumInputEvent(input, inputType);
+    }
+
 
 
     public Action<DateTime, DateTimeInputHandler.InputType> DateTimeChangedEvent;
     public void RaiseDateTimeChangedEvent(DateTime dateTime, DateTimeInputHandler.InputType inputType)
     {
         DateTimeChangedEvent(dateTime, inputType);
+    }
+
+    public Action<string, InputHandler.InputType> InputChangedEvent;
+    public void RaiseInputChangedEvent(string input, InputHandler.InputType inputType)
+    {
+        InputChangedEvent(input, inputType);
     }
 
 

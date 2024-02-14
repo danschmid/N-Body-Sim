@@ -332,6 +332,7 @@ public class NB : MonoBehaviour {
         
         public void AddResult(double[][] Pf, double[][] Vf, double Time, int currentStep)
         {
+            Debug.Log("Current wstep: " + currentStep);
             for (int i = 0; i < BodyCount; i++)
             {
                 fPositions[i][currentStep] = elemDiv2(Pf[i], 1.496e+11);  //convert back to AU
@@ -377,6 +378,10 @@ public class NB : MonoBehaviour {
 
             results.AddResult(iPositions, iVelocities, (double)(t / 86400), currentStep);
             currentStep++;
+            if(currentStep > DataMan.TotalSteps)
+            {
+                break;
+            }
         }
 
     }

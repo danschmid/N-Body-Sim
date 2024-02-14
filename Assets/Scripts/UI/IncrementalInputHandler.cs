@@ -42,11 +42,12 @@ public class IncrementalInputHandler : MonoBehaviour
         text = text.Trim();
         if (text!="")
         {
-            if(CheckValidInput(text) && inputType == InputType.integer) //if it is InputType.dateTime, then it should have a DateTimeInputHandler that will listen for changes to its children and handle them
+            int? output = 0;
+            if(CheckValidInput(text, out output) && inputType == InputType.integer && output != null) //if it is InputType.dateTime, then it should have a DateTimeInputHandler that will listen for changes to its children and handle them
             {
-                EventManager.events.RaiseInputEvent(text, transform.name);
+                EventManager.events.RaiseInputEvent((int)output, inputType);
             }
-            else if (CheckValidInput(text) && inputType == InputType.dateTime)
+            else if (CheckValidInput(text, out output) && inputType == InputType.dateTime)
             {
                 parent.InputValueChanged(text);
             }
@@ -88,6 +89,39 @@ public class IncrementalInputHandler : MonoBehaviour
     }
 
 
+    public bool CheckValidInput(string input, out int? output, bool emptyIsHighlighted = true)
+    {
+        if (int.TryParse(inputField.text, out CurrentValue))
+        {
+            output = CurrentValue;
+            if ((minValue != -1 && CurrentValue < minValue) || (maxValue != -1 && CurrentValue > maxValue))  //if it exceeds minimum or maximum values it is invalid
+            {
+                Debug.Log("Invalid input! Exceeds maximum or minimum values");
+                inputField.image.color = Color.red;
+                return false;
+            }
+
+            if (input.Count() < inputField.characterLimit)  //add leading zeros before input to fill the field's character limit
+            {
+                string zeros = new string('0', inputField.characterLimit - input.Count());
+                inputField.text = zeros + input;
+            }
+
+            inputField.image.color = new Color(255, 255, 255);  //set to default field color in case last input was invalid
+            return true;
+        }
+        else  //invalid input, highlight the field red
+        {
+            output = null;
+            if(!emptyIsHighlighted)
+            {
+                return false; //not valid, but don't color it red
+            }
+            Debug.Log("Invalid input! Please enter a valid number");
+            inputField.image.color = Color.red;
+            return false;
+        }
+    }
     public bool CheckValidInput(string input, bool emptyIsHighlighted = true)
     {
         if (int.TryParse(inputField.text, out CurrentValue))
@@ -110,7 +144,7 @@ public class IncrementalInputHandler : MonoBehaviour
         }
         else  //invalid input, highlight the field red
         {
-            if(!emptyIsHighlighted)
+            if (!emptyIsHighlighted)
             {
                 return false; //not valid, but don't color it red
             }
@@ -118,7 +152,10 @@ public class IncrementalInputHandler : MonoBehaviour
             inputField.image.color = Color.red;
             return false;
         }
-    }
+    }  //same as above, w/o output
+
+
+
 
     protected string GetMinValue()  //returns the minimum allowed input value, equal to minValue if not -1, or based on the character limit of the input field otherwise
     {

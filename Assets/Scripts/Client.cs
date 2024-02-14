@@ -19,8 +19,8 @@ public class Client : MonoBehaviour
 
     //public Dictionary<string, string[]> Index; //[Horizons ID#, [Name, Designation, IAU/Aliases/other]]
     //public Dictionary<string, double[][]> BodyData = new Dictionary<string, double[][]>(); //BodyData = ( [Horizons ID#, [[Xi, Yi, Zi], [VXi, VYi, VZi], [Mass, Radius]]] )
-    public string today;
-    public string tomorrow;
+    //public string today;
+    //public string tomorrow;
 
     public DataManager DataMan = DataManager.Instance;
 
@@ -35,8 +35,8 @@ public class Client : MonoBehaviour
 
     void Start()
     {
-        today = System.DateTime.Now.ToString("yyyy-MM-dd");
-        tomorrow = System.DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+        //today = System.DateTime.Now.ToString("yyyy-MM-dd");
+        //tomorrow = System.DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
 
         StartCoroutine( WebRequestText(HorizonsInfoURL, "0", true) );  //updates the index with names and IDs of available bodies
     }
@@ -63,9 +63,9 @@ public class Client : MonoBehaviour
         DataMan.InitializeDataLists(DataMan.SelectedBodies.Count());
         //DataMan.SelectedBodies = PlanetCodes;
 
-        DateTime now = DateTime.Now;
-        TimeSpan step = new TimeSpan(0, 0, 0, 1080, 0);
-        DataMan.InitializeSimulationSettings(now, now.AddYears(1), step); //
+        //DateTime now = DateTime.Now;
+        //TimeSpan step = new TimeSpan(0, 0, 0, 1080, 0);
+        //DataMan.InitializeSimulationSettings(now, now.AddYears(1), step); //
 
         string result = "PlanetCodes contents: ";
         foreach (var item in PlanetCodes)
@@ -74,14 +74,14 @@ public class Client : MonoBehaviour
         }
         Debug.Log(result);
 
-        for (int c = 0; c < PlanetCodes.Count()-1; c++)
+        for (int c = 0; c < PlanetCodes.Count(); c++)
         {
             string url = DoHorizonsURL(PlanetCodes[c]);
             StartCoroutine(WebRequestText(url, PlanetCodes[c], false)); //wait so that it doesn't overload the server with requests
             yield return new WaitForSeconds(4);  //making calls more frequently than every 4 seconds begins to deny us service
         }
-        string lastPlanet = PlanetCodes[PlanetCodes.Count()-1];
-        yield return StartCoroutine(WebRequestText(DoHorizonsURL(lastPlanet), lastPlanet, false)); //wait for last request to process before trying to simulate
+        //string lastPlanet = PlanetCodes[PlanetCodes.Count()-1];  //why did I do this?
+        //yield return StartCoroutine(WebRequestText(DoHorizonsURL(lastPlanet), lastPlanet, false)); //wait for last request to process before trying to simulate
 
 
         EventManager.events.UnlockAfterLoading();
@@ -208,7 +208,7 @@ public class Client : MonoBehaviour
         //each line has the Julian date, calendar date, and then position, and velocity vectors separated by commas.  The final three CSVs are light-time, range, and range-rate which aren't used at the moment
         string[] xyz = coordinates[0].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);  //this was getting coordinates[1], but im not sure why.  probably should get the first one so it is at the right time/timestep
         Debug.Log("length: " + coordinates.Length);
-        Debug.Log("coordinates 0: " + coordinates[0] + "coordinates 1: " + coordinates[1]);
+        //Debug.Log("coordinates 0: " + coordinates[0] + "coordinates 1: " + coordinates[1]);
 
         double x = double.Parse(xyz[2]);
         double y = double.Parse(xyz[3]);

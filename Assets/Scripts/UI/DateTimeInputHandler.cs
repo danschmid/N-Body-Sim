@@ -39,15 +39,15 @@ public class DateTimeInputHandler : MonoBehaviour
     }
 
 
-    private void SetInput(DateTime value, InputType inputType)  //called when DataManager's date/time parameters change to reflect any unexpected changes in the user input
+    private void SetInput(DateTime value, InputType inputType)  //called when DataManager's date/time parameters are modified to reflect any unexpected changes from parsing or external changes in the user input
     {
-        bool startOrEnd = (inputType == InputType.StartTime || inputType == InputType.StartDate);  //if false then it is an end time/date
+        bool startDateTime = (inputType == InputType.StartTime || inputType == InputType.StartDate);  //if not startDateTime, it is an end date/time
 
-        if ((this.FieldType == InputType.StartTime && startOrEnd) || (this.FieldType == InputType.EndTime && !startOrEnd))
+        if ((this.FieldType == InputType.StartTime && startDateTime) || (this.FieldType == InputType.EndTime && !startDateTime))
         {
             inputFields[0].text = value.Hour.ToString();
-            inputFields[0].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Hour.ToString());  //lots of getcomponent can probably be avoided, but it works for now.  CheckValidInput just needed to properly format string
-
+            inputFields[0].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Hour.ToString());  //lots of getcomponent can probably be avoided, but it works for now.  
+                                                                                                            //CheckValidInput just needed to properly format string, but it can't hurt to check that the parsed output is still valid
             inputFields[1].text = value.Minute.ToString();
             inputFields[1].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Minute.ToString());
 
@@ -62,7 +62,7 @@ public class DateTimeInputHandler : MonoBehaviour
             }
 
         }
-        else if ((this.FieldType == InputType.StartDate && startOrEnd) || (this.FieldType == InputType.EndDate && !startOrEnd))
+        else if ((this.FieldType == InputType.StartDate && startDateTime) || (this.FieldType == InputType.EndDate && !startDateTime))
         {
             inputFields[0].text = value.Month.ToString();
             inputFields[0].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Month.ToString());
@@ -73,6 +73,8 @@ public class DateTimeInputHandler : MonoBehaviour
             inputFields[2].text = value.Year.ToString();
             inputFields[2].GetComponent<IncrementalInputHandler>().CheckValidInput(value.Year.ToString());
         }
+
+        //don't call inputvalue changed. we have to set values and do the checks without triggering the InputEvent again, as that could cause a loop
     }
 
 
@@ -89,7 +91,7 @@ public class DateTimeInputHandler : MonoBehaviour
     }
 
 
-    private bool CheckFieldsAndCombine(out DateTime? result)  //For a valid DateTime parse, this component and all its siblings which share this script need to be valid
+    private bool CheckFieldsAndCombine(out DateTime? result)  //For a valid DateTime parse, this component's input and the inputs of all its siblings which share this script need to be valid
     {
         bool valid = true;
         result = null;
