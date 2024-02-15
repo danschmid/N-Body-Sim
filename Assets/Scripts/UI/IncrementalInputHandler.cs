@@ -4,15 +4,17 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using UnityEngine.VFX;
 
 public class IncrementalInputHandler : MonoBehaviour
 {
     [SerializeField] public InputField inputField { get; private set; }
 
-    [SerializeField] private int minValue=-1;  //if it is equal to -1, there is no enforced min or max value.  Because of this, this input field cannot handle negatives
-    [SerializeField] private int maxValue=-1;  //even when set to -1, maximum value will still be limited by the InputFields character limit 
+    [SerializeField] public int minValue = -1;  //if it is equal to -1, there is no enforced min or max value.  Because of this, this input field cannot handle negatives
+    [SerializeField] public int maxValue = -1;  //even when set to -1, maximum value will still be limited by the InputFields character limit 
 
-    public int CurrentValue;
+    public int? CurrentValue = null;
+
     private DateTimeInputHandler parent;
     [SerializeField] public InputType inputType;
 
@@ -45,31 +47,46 @@ public class IncrementalInputHandler : MonoBehaviour
         text = text.Trim();
         if (text!="")
         {
+            inputField.text = text;  //in case we called this from somewhere else and haven't set it yet
             int? output = 0;
             if(CheckValidInput(text, out output) && inputType == InputType.integer && output != null) //if it is InputType.dateTime, then it should have a DateTimeInputHandler that will listen for changes to its children and handle them
             {
-                CurrentValue = (int)output;
-                EventManager.events.RaiseInputEvent(CurrentValue, inputType);
+                CurrentValue = output;
+                EventManager.events.RaiseInputEvent((int)CurrentValue, inputType);
             }
             else if (CheckValidInput(text, out output) && inputType == InputType.dateTime)
             {
-                CurrentValue = (int)output;
-                parent.InputValueChanged(text);
+                CurrentValue = output;
+                parent.InputValueChanged(text, this);
             }
         }
-        else   //clear the input in case the user just entered whitespaces (even if inputType = dateTime we should do this here at the individual input field level)
+        else if(minValue != -1)  //if the player just enters whitespace or clears the field, set it to its minimum, or 0 if minValue = -1
         {
-            inputField.text = "";
+            inputField.text = minValue.ToString();
+            CheckValidInput(inputField.text);
+            CurrentValue = int.Parse(inputField.text);
+            InputValueChanged(inputField.text);  //call this method again so the change will be recorded in dataman.  It shouldn't loop as long as neither of these statements set the text to an empty string.
+        }
+        else 
+        {
+            inputField.text = "0";
+            CheckValidInput(inputField.text);
+            CurrentValue = int.Parse(inputField.text);
+            InputValueChanged(inputField.text);
         }
     }
 
 
-    public void SetText(string text)
+    public void SetText(string text)  //separate from InputValueChanged because SetText will be called from DataManager, and we don't want InputValuechanged to trigger DataManager again and cause a loop
     {
         if (text.Length <= inputField.characterLimit)
         {
             inputField.text = text;
-            CheckValidInput(text);
+            int? value;
+            if (CheckValidInput(text, out value) && value != null)
+            {
+                CurrentValue = value;
+            }
         }
         else
         {
@@ -82,25 +99,31 @@ public class IncrementalInputHandler : MonoBehaviour
         int add = 1;
         if(decrement) { add = -1; }
 
-        if (int.TryParse(inputField.text, out CurrentValue))
+        int tmp;
+        if (int.TryParse(inputField.text, out tmp))
         {
-            int result = (CurrentValue + add);
+            CurrentValue = tmp;
+            int result = (tmp + add);
             if ((maxValue != -1 && result > maxValue) || result.ToString().Count() > inputField.characterLimit) //loop to minimum if maxValue !=-1 and result exceeds it, or if it exceeds char limit
             {
                 inputField.text = GetMinValue();
+                CurrentValue = int.Parse(GetMinValue());
             }
             else if ((minValue != -1 && result < minValue) || result < 0)  //loop to maximum if minimum !=-1 and result becomes less, or if it goes below zero
             {
                 inputField.text = GetMaxValue();
+                CurrentValue = int.Parse(GetMaxValue());
             }
             else
             {
                 inputField.text = result.ToString();
+                CurrentValue = result;
             }
         }
         else  //if the input was blank
         {
             inputField.text = GetMinValue();
+            CurrentValue = int.Parse(GetMinValue());
         }
 
         InputValueChanged(inputField.text);
@@ -148,10 +171,11 @@ public class IncrementalInputHandler : MonoBehaviour
     {
         input = input.Trim();
         //Debug.Log("Checking if " + input + " is valid...");
-        if (int.TryParse(input, out CurrentValue))
+        int value;
+        if (int.TryParse(input, out value))
         {
             //Debug.Log("Parse successful: " + CurrentValue);
-            if ((minValue != -1 && CurrentValue < minValue) || (maxValue != -1 && CurrentValue > maxValue))  //if it exceeds minimum or maximum values it is invalid
+            if ((minValue != -1 && value < minValue) || (maxValue != -1 && value > maxValue))  //if it exceeds minimum or maximum values it is invalid
             {
                 //Debug.Log("Invalid input! Exceeds maximum or minimum values");
                 inputField.image.color = Color.red;
